@@ -2,50 +2,36 @@
 
 Spec driven development workflow for creating production grade software.
 
-Acceptance criteria follow the [EARS (Easy Approach to Requirements Syntax)](ears-reference.adoc) standard to ensure requirements are unambiguous, verifiable, and consistent.
+Acceptance criteria follow the [EARS (Easy Approach to Requirements Syntax)](.opencode/skills/ears-requirements/reference/ears-reference.adoc) standard to ensure requirements are unambiguous, verifiable, and consistent.
 
-## Usage
+## Skills
 
-Generate user stories from feature descriptions using the `/story` command.
+This project provides two [OpenCode skills](https://opencode.ai/docs/skills/) that work together:
 
-```
-/story <description of what you want the software to do>
-```
+### `user-story`
 
-### Examples
+Generate user stories from feature descriptions. The agent loads this skill when asked to create user stories, break down requirements, or generate acceptance criteria.
 
-#### Basic Usage
+Ask the agent to generate stories by describing what you want:
 
 ```
-/story I want a todo app where users can create, edit, delete tasks and mark them complete
+Create user stories for a todo app where users can create, edit, delete tasks and mark them complete
 ```
 
-#### More Detailed Description
-
 ```
-/story Build an e-commerce platform with product catalog, shopping cart, user authentication, and payment processing
+Write stories for social login with Google and GitHub alongside email/password authentication
 ```
 
-#### Specific Feature
+The skill will:
+1. Analyse the description and decompose it into atomic user stories
+2. Write acceptance criteria using EARS sentence types
+3. Output stories in AsciiDoc format to `user-stories.adoc`
 
-```
-/story Add social login with Google and GitHub alongside email/password authentication
-```
+Subsequent runs append new stories to the same file under appropriate feature sections.
 
-### Workflow
+### `ears-requirements`
 
-1. Run `/story` with your description
-2. AI generates user stories in AsciiDoc format with EARS acceptance criteria
-3. Review the generated stories in `user-stories.adoc`
-
-### File Output
-
-Stories are saved to `user-stories.adoc` with:
-- Table of Contents as index
-- Stories grouped by feature
-- Each story includes acceptance criteria written using EARS sentence types
-
-Subsequent runs of `/story` append new stories to the same file under appropriate feature sections.
+Write and review requirements using the EARS methodology. The agent loads this skill when writing, translating, or reviewing requirements in EARS format.
 
 ## EARS Acceptance Criteria
 
@@ -59,11 +45,11 @@ Each acceptance criterion uses one of the EARS sentence types:
 | Unwanted behavior | If \<trigger\>, then the \<system\> shall \<response\>. | Errors and edge cases |
 | Optional | Where \<feature\>, the \<system\> shall \<response\>. | Feature-dependent behavior |
 
-See [ears-reference.adoc](ears-reference.adoc) for the full EARS reference guide.
+See the [EARS quick reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) for the full guide.
 
 ## Example Output
 
-Given: `/story user login and registration system`
+Given: "user login and registration system"
 
 ```asciidoc
 = User Stories
@@ -111,4 +97,4 @@ Acceptance Criteria:
 
 ## Reference
 
-- [EARS Quick Reference](ears-reference.adoc) -- Full guide to the EARS requirement syntax standard
+- [EARS Quick Reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) -- Full guide to the EARS requirement syntax standard
