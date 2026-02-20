@@ -55,7 +55,8 @@ Organize stories under feature headings using this AsciiDoc template:
 
 ```asciidoc
 = User Stories
-
+:version: 1.0.0
+:last-updated: YYYY-MM-DD
 :toc:
 
 == [Feature Name]
@@ -74,10 +75,30 @@ Acceptance Criteria:
 ### 5. File Handling
 
 - Target file: `user-stories.adoc` in project root
-- If file does not exist: create with `= User Stories` header and `:toc:` directive
+- If file does not exist: create with `= User Stories` header, `:version: 1.0.0`, `:last-updated:` set to today's date, and `:toc:` directive
 - If file exists: read current content, append new stories under appropriate feature section or create new feature section
 - Preserve existing content and TOC
 - Always write the result to the file
+
+### 6. Version Management
+
+The `user-stories.adoc` file uses semantic versioning (SemVer).
+
+**When creating the file for the first time:**
+- Set `:version:` to `1.0.0`
+- Set `:last-updated:` to today's date
+
+**On every subsequent change, update both attributes:**
+
+| Change Type | Bump | Example |
+|---|---|---|
+| Stories removed, acceptance criteria fundamentally rewritten | MAJOR | 1.0.0 -> 2.0.0 |
+| New stories added, criteria modified (non-breaking) | MINOR | 1.0.0 -> 1.1.0 |
+| Typos, formatting, clarifications (no behavioral change) | PATCH | 1.0.0 -> 1.0.1 |
+
+- When bumping MAJOR, reset MINOR and PATCH to 0
+- When bumping MINOR, reset PATCH to 0
+- Always update `:last-updated:` to today's date
 
 ## Quality Checklist (INVEST)
 
