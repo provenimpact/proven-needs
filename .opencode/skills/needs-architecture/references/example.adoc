@@ -1,0 +1,98 @@
+= Architecture Example
+
+This file shows a complete architecture document for an e-commerce project, generated from the design document in greenfield mode.
+
+== Architecture File (docs/architecture.adoc)
+
+....
+= System Architecture
+:version: 1.0.0
+:last-updated: 2026-02-20
+:toc:
+
+== Overview
+
+E-commerce web application enabling users to browse products, manage a shopping cart, and complete purchases with online payment. Built as a monolithic Next.js application with server-rendered pages and API routes backed by PostgreSQL.
+
+== Technology Stack
+
+[cols="1,2,2", options="header"]
+|===
+| Category | Technology | Rationale
+
+| Language
+| TypeScript
+| <<adrs/0001-use-typescript.adoc#,ADR-0001>>: Shared across frontend and backend
+
+| Framework
+| Next.js
+| <<adrs/0003-use-nextjs.adoc#,ADR-0003>>: SSR for SEO, API routes for backend
+
+| Database
+| PostgreSQL
+| <<adrs/0002-use-postgresql.adoc#,ADR-0002>>: ACID compliance for transactions
+
+| Payments
+| Stripe
+| <<adrs/0004-use-stripe.adoc#,ADR-0004>>: PCI compliance, hosted checkout
+|===
+
+== System Components
+
+=== Frontend
+
+Server-rendered pages via Next.js for product browsing (SEO) and client-side interactive pages for cart and checkout.
+
+Key modules:
+
+* **Product Catalog** -- server-rendered product listing with pagination and search
+* **Cart Management** -- client-side cart page with quantity controls, backed by CartContext (React Context) and localStorage persistence
+* **Checkout Flow** -- multi-step form (address, payment via Stripe Elements, review)
+* **Shared Components** -- ProductCard, CartIcon, SearchBar
+
+=== Backend (API Routes)
+
+Next.js API routes handling product queries, cart mutations, and checkout orchestration.
+
+Key endpoints:
+
+* `GET /api/products` -- paginated product listing with text search
+* `GET /api/products/:id` -- single product details
+* `POST /api/cart/items` -- add item to cart (validates stock)
+* `PATCH /api/cart/items/:id` -- update cart item quantity
+* `DELETE /api/cart/items/:id` -- remove cart item
+* `POST /api/checkout` -- create order, process payment, send confirmation email
+
+=== State Management
+
+CartContext (React Context) manages client-side cart state. Synced with backend on mutations. Persisted in localStorage for anonymous users.
+
+== Data Architecture
+
+PostgreSQL database with five tables: Product, Cart, CartItem, Order, OrderItem. See <<design/data-model.adoc#,Data Model>> for full schema.
+
+Key data flows:
+
+* Product data flows from database -> API -> server-rendered pages
+* Cart mutations flow from frontend -> API -> database, with optimistic updates via CartContext
+* Checkout creates an Order from Cart, snapshots prices into OrderItems, processes payment via Stripe, triggers confirmation email
+
+== External Interfaces
+
+=== User-Facing
+
+Web application served over HTTPS. Server-rendered product pages (public, crawlable). Client-side cart and checkout (session-based).
+
+=== Third-Party Integrations
+
+* **Stripe** -- server-side PaymentIntent creation, client-side Stripe Elements for card input
+* **Transactional email service** -- order confirmation emails triggered on successful checkout
+
+== Cross-Cutting Concerns
+
+=== Error Handling
+Stock validation on cart mutations and checkout. Stripe payment failure handling with user-facing error messages. API routes return structured error responses.
+
+=== Security
+Stripe handles PCI compliance for payment data. Session-based cart identification. Input validation on all API routes.
+....
