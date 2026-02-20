@@ -5,6 +5,8 @@ description: Create and maintain technical specifications with EARS requirements
 
 ## Prerequisites
 
+Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+
 Load the `ears-requirements` skill before writing requirements. It provides the EARS sentence types and templates.
 
 ## Workflow
