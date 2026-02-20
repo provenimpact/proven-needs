@@ -3,6 +3,10 @@ name: needs-adr
 description: Create and manage Architecture Decision Records (ADRs) in docs/adrs/. Use when asked to record a technical decision, document a technology choice, create an ADR, list or review existing decisions, update or supersede a decision, or when the needs-design skill identifies decisions that need recording.
 ---
 
+## Prerequisites
+
+Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+
 ## Workflow
 
 Creating and managing ADRs involves these steps:

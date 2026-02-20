@@ -5,6 +5,8 @@ description: Generate user stories with EARS acceptance criteria from feature de
 
 ## Prerequisites
 
+Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+
 Load the `ears-requirements` skill before writing acceptance criteria. It provides the EARS sentence types and templates needed for criteria authoring.
 
 ## Workflow
