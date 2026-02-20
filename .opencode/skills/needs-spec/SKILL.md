@@ -1,5 +1,5 @@
 ---
-name: spec-manager
+name: needs-spec
 description: Create and maintain technical specifications with EARS requirements derived from user stories. Use when asked to create specifications, generate requirements from stories, update specs, sync specifications with user stories, or review specification coverage. Reads user-stories.adoc and produces categorized, black-box testable requirement files in docs/specs/.
 ---
 
@@ -26,9 +26,9 @@ Read `user-stories.adoc` from the project root. Extract:
 - All stories with their acceptance criteria
 - Feature groupings
 
-**If the file does not exist:** Stop and inform the user that user stories must be created first using the `user-story` skill.
+**If the file does not exist:** Stop and inform the user that user stories must be created first using the `needs-user-story` skill.
 
-**If `:version:` is missing:** Inform the user that their `user-stories.adoc` needs version metadata. Instruct them to run the `user-story` skill to add it, or ask if they want to proceed treating the current content as version `1.0.0`.
+**If `:version:` is missing:** Inform the user that their `user-stories.adoc` needs version metadata. Instruct them to run the `needs-user-story` skill to add it, or ask if they want to proceed treating the current content as version `1.0.0`.
 
 ### 2. Check for Existing Specifications
 

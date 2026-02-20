@@ -1,5 +1,5 @@
 ---
-name: user-story
+name: needs-user-story
 description: Generate user stories with EARS acceptance criteria from feature descriptions. Use when asked to create user stories, write stories for a feature, break down requirements into stories, or generate acceptance criteria for features.
 ---
 

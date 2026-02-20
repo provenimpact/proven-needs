@@ -1,4 +1,4 @@
-# proven-spec
+# proven-needs
 
 Spec driven development workflow for creating production grade software.
 
@@ -7,19 +7,36 @@ Acceptance criteria and specifications follow the [EARS (Easy Approach to Requir
 ## Workflow
 
 ```
-Feature Description -> User Stories -> Specifications
-                       (user-story)    (spec-manager)
+Feature Description -> User Stories -> Specifications -> Design
+                       (needs-user-story)  (needs-spec)     |
+                                                        +----+----+
+                                                        |         |
+                                                      ADRs    Architecture
+                                                   (needs-adr) (needs-architecture)
 ```
 
 1. Describe the feature you want to build
-2. Generate user stories with acceptance criteria (`user-story` skill)
-3. Derive categorized, black-box testable specifications (`spec-manager` skill)
+2. Generate user stories with acceptance criteria (`needs-user-story` skill)
+3. Derive categorized, black-box testable specifications (`needs-spec` skill)
+4. Design the implementation that solves the stories (`needs-design` skill)
+   - Record technology decisions as ADRs (`needs-adr` skill)
+   - Document the resulting architecture (`needs-architecture` skill)
+
+### Artifact Lifecycle
+
+| Artifact | Location | Lifecycle |
+|---|---|---|
+| User Stories | `user-stories.adoc` | Living document, versioned with SemVer |
+| Specifications | `docs/specs/` | Living document, synced with user stories |
+| Design Document | `docs/design/` | Ephemeral -- invalid after stories/specs change or implementation completes |
+| ADRs | `docs/adrs/` | Permanent, append-only records |
+| Architecture | `docs/architecture.adoc` | Living document reflecting current system state |
 
 ## Skills
 
-This project provides three [OpenCode skills](https://opencode.ai/docs/skills/) that work together:
+This project provides six [OpenCode skills](https://opencode.ai/docs/skills/) that work together:
 
-### `user-story`
+### `needs-user-story`
 
 Generate user stories from feature descriptions. The agent loads this skill when asked to create user stories, break down requirements, or generate acceptance criteria.
 
@@ -40,7 +57,7 @@ The skill will:
 
 Subsequent runs append new stories to the same file under appropriate feature sections and bump the version.
 
-### `spec-manager`
+### `needs-spec`
 
 Create and maintain technical specifications from user stories. The agent loads this skill when asked to create specifications, sync specs with stories, or review requirement coverage.
 
@@ -61,9 +78,69 @@ The skill will:
 4. Write categorized specification files to `docs/specs/`
 5. On subsequent runs, detect changes and sync specifications
 
+### `needs-design`
+
+Create implementation design documents that solve the user stories. The agent loads this skill when asked to design a feature, create an implementation plan, or bridge specifications to code.
+
+Ask the agent to create a design after specs exist:
+
+```
+Design the implementation for the user stories
+```
+
+```
+Create an implementation plan for the e-commerce features
+```
+
+The skill will:
+1. Read user stories (primary driver), specs (testable requirements), and ADRs (technology decisions)
+2. Identify technology decisions and unknowns -- offer to create ADRs for significant decisions
+3. Design the system: components, data model, interfaces
+4. Map every user story to its solution in the design (story resolution)
+5. Write design artifacts to `docs/design/`
+
+The design document tracks `:source-stories-version:` and `:source-specs-version:` and has a `:status:` field (`Current`, `Stale`, `Implemented`).
+
+### `needs-adr`
+
+Create and manage Architecture Decision Records. The agent loads this skill when asked to record a technical decision, document a technology choice, or when the design skill identifies decisions that need recording.
+
+```
+Record a decision to use PostgreSQL for the database
+```
+
+```
+Create an ADR for choosing Next.js as the framework
+```
+
+The skill will:
+1. Determine the next ADR sequence number
+2. Gather context, decision, consequences, and alternatives
+3. Write the ADR to `docs/adrs/NNNN-title.adoc`
+4. Update `docs/adrs/index.adoc`
+
+ADRs are permanent, append-only records. Decisions are never deleted -- they are superseded or deprecated.
+
+### `needs-architecture`
+
+Create and maintain the system architecture document. The agent loads this skill when asked to document or update the architecture, or after a design has been implemented.
+
+```
+Document the system architecture
+```
+
+```
+Update the architecture after implementing the new features
+```
+
+The skill will:
+1. **Greenfield projects:** Generate architecture from the design document
+2. **Existing projects:** Analyze the codebase and reconcile with the design document
+3. Write `docs/architecture.adoc` as a living snapshot of the current system
+
 ### `ears-requirements`
 
-Write and review requirements using the EARS methodology. The agent loads this skill when writing, translating, or reviewing requirements in EARS format. Used as a prerequisite by both `user-story` and `spec-manager`.
+Write and review requirements using the EARS methodology. The agent loads this skill when writing, translating, or reviewing requirements in EARS format. Used as a prerequisite by both `needs-user-story` and `needs-spec`.
 
 ## EARS Acceptance Criteria
 
@@ -130,7 +207,7 @@ Acceptance Criteria:
 
 ## Example: Specifications
 
-Given the user stories above, `spec-manager` produces categorized specifications:
+Given the user stories above, `needs-spec` produces categorized specifications:
 
 ```asciidoc
 = Authentication Requirements
