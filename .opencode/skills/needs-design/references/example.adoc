@@ -1,0 +1,224 @@
+= Design Example
+
+This file shows a complete example of a design document for an e-commerce project. The user stories and specs from the needs-user-story and needs-spec examples are used as input.
+
+== Context
+
+Given:
+
+* `user-stories.adoc` at version `1.0.0` with 5 stories across 3 features (Product Browsing, Shopping Cart, Checkout)
+* `docs/specs/` at version `1.0.0` with categories UI, SRCH, CART, CHK, ERR, NOTIF
+* `docs/adrs/0001-use-typescript.adoc` (Accepted)
+* `docs/adrs/0002-use-postgresql.adoc` (Accepted)
+
+== Main Design File (docs/design/design.adoc)
+
+....
+= Design Document
+:version: 1.0.0
+:status: Current
+:source-stories-version: 1.0.0
+:source-specs-version: 1.0.0
+:last-updated: 2026-02-20
+:toc:
+
+== Technical Context
+
+Greenfield e-commerce web application. Users browse products, manage a shopping cart, and complete purchases. No existing codebase.
+
+== Decisions and Constraints
+
+* <<../adrs/0001-use-typescript.adoc#,ADR-0001>>: Use TypeScript for backend and frontend
+* <<../adrs/0002-use-postgresql.adoc#,ADR-0002>>: Use PostgreSQL for persistence
+* <<../adrs/0003-use-nextjs.adoc#,ADR-0003>>: Use Next.js as the fullstack framework
+* <<../adrs/0004-use-stripe.adoc#,ADR-0004>>: Use Stripe for payment processing
+
+ADR-0003 and ADR-0004 were created during Phase 0 of this design process.
+
+== Research and Unknowns
+
+=== Resolved
+
+Framework selection:: Next.js chosen for server-side rendering (SEO for product pages) and API routes (backend endpoints in the same project). See ADR-0003.
+
+Payment processing:: Stripe chosen for PCI compliance and hosted checkout. See ADR-0004.
+
+=== Open Questions
+
+None.
+
+== System Design
+
+=== Frontend
+
+==== Product Catalog Page
+Server-rendered page using Next.js. Fetches products from the API with pagination and search. Renders product cards with image, name, price, and "Add to Cart" button.
+
+==== Cart Page
+Client-side interactive page. Reads cart state from CartContext. Renders line items with quantity controls and a running total. "Proceed to Checkout" button navigates to the checkout flow.
+
+==== Checkout Page
+Multi-step form: shipping address, payment (Stripe Elements), order review. Submits order to the API on confirmation.
+
+==== Shared Components
+* `ProductCard` -- displays a single product summary
+* `CartIcon` -- header icon showing item count from CartContext
+* `SearchBar` -- text input with debounced search, triggers product catalog filtering
+
+=== Backend (API Routes)
+
+==== GET /api/products
+Returns paginated product list. Supports `?q=` for text search and `?page=` for pagination.
+
+==== GET /api/products/:id
+Returns a single product with full details.
+
+==== POST /api/cart/items
+Adds an item to the cart. Body: `{ productId, quantity }`. Validates stock availability.
+
+==== PATCH /api/cart/items/:id
+Updates quantity of a cart item. Body: `{ quantity }`. Validates stock.
+
+==== DELETE /api/cart/items/:id
+Removes an item from the cart.
+
+==== POST /api/checkout
+Creates an order from the current cart. Validates stock, calculates totals, creates Stripe PaymentIntent, persists order. Returns order confirmation.
+
+=== State Management
+
+CartContext (React Context) holds the current cart state client-side. Synced with the backend on mutations. Persisted in localStorage for anonymous users.
+
+=== External Integrations
+
+Stripe:: Payment processing via Stripe SDK. Server-side: create PaymentIntents. Client-side: Stripe Elements for card input.
+
+== Story Resolution
+
+=== Story 1: Browse Products
+
+Components:: Product Catalog Page, ProductCard, GET /api/products
+Criteria::
+* Display paginated product list -> Product Catalog Page renders ProductCard components from GET /api/products (UI-001)
+* Show product image, name, price -> ProductCard component displays these fields (UI-002)
+* Load more products on scroll -> Pagination via `?page=` parameter, infinite scroll on frontend (UI-003)
+
+=== Story 2: Search Products
+
+Components:: SearchBar, Product Catalog Page, GET /api/products
+Criteria::
+* Search by product name -> SearchBar sends `?q=` to GET /api/products, backend does text search on product name (SRCH-001)
+* Display matching results -> Product Catalog Page re-renders with filtered results (SRCH-002)
+* Show "no results" message -> Frontend displays empty state when API returns zero products (SRCH-003, ERR-001)
+
+=== Story 3: Manage Shopping Cart
+
+Components:: CartContext, Cart Page, POST/PATCH/DELETE /api/cart/items
+Criteria::
+* Add item to cart -> POST /api/cart/items, CartContext updates, CartIcon reflects count (CART-001)
+* Update quantity -> PATCH /api/cart/items/:id with new quantity (CART-002)
+* Remove item -> DELETE /api/cart/items/:id (CART-003)
+* Display running total -> Cart Page computes total from CartContext line items (CART-004)
+* If item out of stock, show error -> API validates stock on add/update, returns 409, frontend shows error message (ERR-002)
+
+=== Story 4: Checkout
+
+Components:: Checkout Page, POST /api/checkout, Stripe integration
+Criteria::
+* Enter shipping address -> Checkout Page step 1: address form with validation (CHK-001)
+* Enter payment details -> Checkout Page step 2: Stripe Elements card input (CHK-002)
+* Review order before confirming -> Checkout Page step 3: order summary with line items and totals (CHK-003)
+* Receive order confirmation -> POST /api/checkout returns order ID and confirmation, frontend displays success page (CHK-004, NOTIF-001)
+
+=== Story 5: Order Confirmation Email
+
+Components:: POST /api/checkout, email service
+Criteria::
+* Receive email after purchase -> POST /api/checkout triggers email via transactional email service after successful payment (NOTIF-002)
+* Email contains order details -> Email template includes order ID, line items, totals, shipping address (NOTIF-003)
+....
+
+== Data Model File (docs/design/data-model.adoc)
+
+....
+= Data Model
+:version: 1.0.0
+:last-updated: 2026-02-20
+:toc:
+
+== Product
+
+[cols="1,1,2", options="header"]
+|===
+| Field | Type | Notes
+
+| id | UUID | Primary key
+| name | VARCHAR(255) | Required, indexed for search
+| description | TEXT | Optional
+| price | DECIMAL(10,2) | Required, >= 0
+| image_url | VARCHAR(500) | Required
+| stock_quantity | INTEGER | Required, >= 0
+| created_at | TIMESTAMP | Auto-set
+| updated_at | TIMESTAMP | Auto-updated
+|===
+
+== Cart
+
+[cols="1,1,2", options="header"]
+|===
+| Field | Type | Notes
+
+| id | UUID | Primary key
+| session_id | VARCHAR(255) | For anonymous users, indexed
+| created_at | TIMESTAMP | Auto-set
+| updated_at | TIMESTAMP | Auto-updated
+|===
+
+== CartItem
+
+[cols="1,1,2", options="header"]
+|===
+| Field | Type | Notes
+
+| id | UUID | Primary key
+| cart_id | UUID | FK -> Cart, indexed
+| product_id | UUID | FK -> Product
+| quantity | INTEGER | Required, >= 1
+|===
+
+== Order
+
+[cols="1,1,2", options="header"]
+|===
+| Field | Type | Notes
+
+| id | UUID | Primary key
+| cart_id | UUID | FK -> Cart
+| status | ENUM | pending, paid, shipped, cancelled
+| total | DECIMAL(10,2) | Computed at checkout
+| shipping_address | JSONB | Address fields
+| stripe_payment_id | VARCHAR(255) | Stripe PaymentIntent ID
+| created_at | TIMESTAMP | Auto-set
+|===
+
+== OrderItem
+
+[cols="1,1,2", options="header"]
+|===
+| Field | Type | Notes
+
+| id | UUID | Primary key
+| order_id | UUID | FK -> Order, indexed
+| product_id | UUID | FK -> Product
+| quantity | INTEGER | Snapshot from CartItem
+| unit_price | DECIMAL(10,2) | Snapshot from Product at time of order
+|===
+
+== Relationships
+
+* Cart 1--* CartItem
+* CartItem *--1 Product
+* Order 1--* OrderItem
+* OrderItem *--1 Product
+* Order 1--1 Cart (order created from cart)
+....
