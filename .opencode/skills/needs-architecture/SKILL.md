@@ -3,6 +3,10 @@ name: needs-architecture
 description: Create and maintain the system architecture document. Use when asked to document the architecture, update the architecture, describe the system structure, generate an architecture overview, or when a design has been implemented and the architecture needs updating. Produces docs/architecture.adoc as a living document reflecting the current system state. Supports both greenfield projects (generated from design document) and existing projects (analyzed from codebase).
 ---
 
+## Prerequisites
+
+Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+
 ## Workflow
 
 Creating and maintaining the architecture document involves these steps:

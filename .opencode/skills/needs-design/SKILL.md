@@ -5,6 +5,8 @@ description: Create implementation design documents from user stories and specif
 
 ## Prerequisites
 
+Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+
 The `needs-adr` skill must be available. This skill invokes the ADR pattern when technology decisions are identified during the design process.
 
 ## Workflow
