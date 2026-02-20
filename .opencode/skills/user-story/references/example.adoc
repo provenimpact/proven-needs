@@ -6,6 +6,11 @@
 
 == Output
 
+= User Stories
+:version: 1.0.0
+:last-updated: 2026-02-20
+:toc:
+
 === Product Browsing
 
 ==== Story 1: View Product Catalog
