@@ -1,0 +1,220 @@
+= Implementation Example
+
+This file walks through implementing Phase 1 (Foundation) of the e-commerce task list from the needs-tasks example. It demonstrates the per-phase cycle: build todo list, implement tasks, verify, commit, ask to continue.
+
+== Context
+
+Given:
+
+* `docs/tasks/tasks.adoc` at version `1.0.0` with 5 phases, 18 tasks
+* `docs/design/design.adoc` at version `1.0.0` with system design for Next.js + PostgreSQL e-commerce app
+* `docs/design/data-model.adoc` at version `1.0.0` with entities: Product, Cart, CartItem, Order, OrderItem
+* No tasks are ticked yet -- starting from Phase 1
+
+== Step 1: Read Inputs
+
+Read `docs/tasks/tasks.adoc` -- status is `Current`, source-design-version is `1.0.0`. Proceed.
+
+Read `docs/design/design.adoc` -- extract system design (Next.js frontend, Node.js API, PostgreSQL database), story resolution mappings, and technology decisions from ADRs.
+
+Read `docs/design/data-model.adoc` -- extract all entity definitions, field types, constraints, and relationships.
+
+== Step 2: Check for Existing Progress
+
+No tasks are ticked. Start from Phase 1.
+
+== Step 3: Build Phase Todo List (Phase 1: Foundation)
+
+Parse Phase 1 from tasks.adoc. It contains 4 tasks:
+
+....
+TodoWrite:
+- TASK-001: Initialize Next.js project with TypeScript configuration [pending]
+- TASK-002: Create Product entity and migration [pending]
+- TASK-003: Create Cart and CartItem entities and migrations [pending]
+- TASK-004: Create Order and OrderItem entities and migrations [pending]
+....
+
+Note: only Phase 1 tasks appear in the todo list. Phases 2--5 are not included.
+
+== Step 4: Implement Current Phase
+
+=== TASK-001: Initialize Next.js project with TypeScript configuration [sequential]
+
+Mark TASK-001 as `in_progress` in the todo list.
+
+This task is `[sequential]` -- it must complete before the parallel tasks begin.
+
+Read the design document's system design section for the project structure. Implement:
+
+* Run `npx create-next-app@latest --typescript` with the project configuration
+* Configure `tsconfig.json` with strict mode
+* Set up directory structure: `pages/`, `components/`, `lib/`, `pages/api/`
+* Install core dependencies: `next`, `react`, `typescript`, `pg` (PostgreSQL driver)
+* Configure ESLint with the project's preferred rules
+
+Mark TASK-001 as `completed` in the todo list. Tick `[x]` in tasks.adoc.
+
+=== TASK-002: Create Product entity and migration [parallel]
+
+Mark TASK-002 as `in_progress`.
+
+Read `data-model.adoc` for the Product entity definition. Implement:
+
+* Create `lib/db/migrations/001_create_products.sql`:
++
+....
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  image_url VARCHAR(500),
+  stock_quantity INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_products_name ON products(name);
+....
+
+* Create `lib/models/product.ts` with TypeScript type and basic query functions
+* Create `lib/db/seed.ts` with development seed data
+
+Mark TASK-002 as `completed`. Tick `[x]` in tasks.adoc.
+
+=== TASK-003: Create Cart and CartItem entities and migrations [parallel]
+
+Mark TASK-003 as `in_progress`.
+
+Read `data-model.adoc` for Cart and CartItem entity definitions. Implement:
+
+* Create `lib/db/migrations/002_create_carts.sql` with Cart and CartItem tables, cascade delete, quantity constraint
+* Create `lib/models/cart.ts` with TypeScript types and query functions
+
+Mark TASK-003 as `completed`. Tick `[x]` in tasks.adoc.
+
+=== TASK-004: Create Order and OrderItem entities and migrations [parallel]
+
+Mark TASK-004 as `in_progress`.
+
+Read `data-model.adoc` for Order and OrderItem entity definitions. Implement:
+
+* Create `lib/db/migrations/003_create_orders.sql` with Order (status enum, JSONB shipping_address) and OrderItem tables
+* Create `lib/models/order.ts` with TypeScript types and query functions
+
+Mark TASK-004 as `completed`. Tick `[x]` in tasks.adoc.
+
+== Step 5: Verify Phase
+
+Detect verification commands from `package.json`:
+
+....
+npm run build     # Next.js build -- passes
+npm run lint      # ESLint -- passes
+npm run typecheck # tsc --noEmit -- passes
+....
+
+All verification passes. Proceed to commit.
+
+== Step 6: Commit Phase
+
+Stage and commit:
+
+....
+git add .
+git commit -m "feat(foundation): implement phase 1 -- Foundation
+
+- TASK-001: Initialize Next.js project with TypeScript configuration
+- TASK-002: Create Product entity and migration
+- TASK-003: Create Cart and CartItem entities and migrations
+- TASK-004: Create Order and OrderItem entities and migrations"
+....
+
+Commit succeeds (GPG signing works).
+
+== Step 7: Ask to Continue
+
+Present question to user:
+
+....
+Question: Phase 1 (Foundation) is complete. All 4 tasks implemented and verified. Continue?
+Options:
+- Continue to Phase 2: Core Backend
+- Stop here
+....
+
+User selects "Continue to Phase 2: Core Backend".
+
+Clear the todo list and create a new one with only Phase 2 tasks:
+
+....
+TodoWrite:
+- TASK-005: Implement GET /api/products endpoint [pending]
+- TASK-006: Implement GET /api/products with search [pending]
+- TASK-007: Implement GET /api/products/:id endpoint [pending]
+- TASK-008: Implement POST /api/cart/items endpoint [pending]
+- TASK-009: Implement PATCH /api/cart/items/:id endpoint [pending]
+- TASK-010: Implement DELETE /api/cart/items/:id endpoint [pending]
+....
+
+Loop back to Step 4 for Phase 2.
+
+== Updated tasks.adoc After Phase 1
+
+....
+== Phase 1: Foundation
+
+Set up the project scaffolding and create all database entities and migrations.
+
+* [x] TASK-001: Initialize Next.js project with TypeScript configuration [sequential]
++
+Components:: Project root, Next.js config, TypeScript config
+Stories:: All
+Specs:: (none directly -- infrastructure)
+Description:: Create the Next.js project with TypeScript enabled...
+
+* [x] TASK-002: Create Product entity and migration [parallel]
++
+Components:: Database, Product model
+Stories:: Story 1, Story 2
+Specs:: UI-002
+Description:: Create the Product table with fields...
+
+* [x] TASK-003: Create Cart and CartItem entities and migrations [parallel]
++
+Components:: Database, Cart model, CartItem model
+Stories:: Story 3
+Specs:: CART-001, CART-004
+Description:: Create Cart table and CartItem table...
+
+* [x] TASK-004: Create Order and OrderItem entities and migrations [parallel]
++
+Components:: Database, Order model, OrderItem model
+Stories:: Story 4
+Specs:: CHK-004
+Description:: Create Order table and OrderItem table...
+
+== Phase 2: Core Backend
+
+...tasks still unticked...
+....
+
+== Final State (After All Phases Complete)
+
+When the last phase is committed, set both files to Implemented:
+
+....
+docs/tasks/tasks.adoc   -> :status: Implemented
+docs/design/design.adoc -> :status: Implemented
+....
+
+Commit the status updates:
+
+....
+git commit -m "chore: mark implementation complete
+
+Set tasks and design status to Implemented."
+....
+
+Inform the user that all phases are complete and the implementation cycle is done.
