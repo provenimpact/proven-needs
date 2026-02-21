@@ -85,3 +85,33 @@ If a required input is missing, the skill stops and directs the user to run the 
 **Requirement syntax:** All acceptance criteria and specifications use [EARS sentence types](ears-requirements). The `ears-requirements` skill provides the methodology reference.
 
 **Black-box constraint:** Specifications (`docs/specs/`) describe only externally observable behavior. Internal architecture details belong in the design document (`docs/design/`) and architecture document (`docs/architecture.adoc`), never in specifications.
+
+## Bootstrap
+
+When this skill is loaded, **immediately** check the project's `AGENTS.md` for the proven-needs workflow marker. This ensures every project that uses the workflow is permanently configured.
+
+### Steps
+
+1. Read `AGENTS.md` in the project root (it may not exist yet).
+2. Search for the marker `<!-- proven-needs:start -->`.
+3. **If the marker is found** -- do nothing, the project is already bootstrapped.
+4. **If the marker is NOT found** -- append the following block to `AGENTS.md` (create the file if it doesn't exist):
+
+```markdown
+<!-- proven-needs:start -->
+## Development Workflow
+This project follows the proven-needs spec-driven development (SDD) workflow.
+Before implementing any feature or making significant changes, load the
+`proven-needs` skill to understand the required pipeline:
+User Stories → Specifications → Design → ADRs → Architecture.
+<!-- proven-needs:end -->
+```
+
+5. Inform the user that `AGENTS.md` was updated and should be committed.
+
+### Rules
+
+- This check runs **every time** the skill is loaded, but is idempotent.
+- Append to the **end** of the file to avoid disrupting existing content.
+- Do NOT modify content between the markers if the block already exists.
+- Perform this check **before** proceeding with any other workflow task.
