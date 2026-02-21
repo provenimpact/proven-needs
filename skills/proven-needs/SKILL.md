@@ -1,13 +1,13 @@
 ---
 name: proven-needs
-description: Spec-driven development workflow for creating production-grade software. Provides the overall pipeline, artifact lifecycle, and conventions shared by all needs-* skills. Every workflow skill (needs-user-story, needs-spec, needs-design, needs-adr, needs-architecture) loads this skill first. Also use when asked about the development workflow, artifact locations, how the skills connect, or the overall process.
+description: Spec-driven development workflow for creating production-grade software. Provides the overall pipeline, artifact lifecycle, and conventions shared by all needs-* skills. Every workflow skill (needs-user-story, needs-spec, needs-design, needs-adr, needs-architecture, needs-tasks) loads this skill first. Also use when asked about the development workflow, artifact locations, how the skills connect, or the overall process.
 ---
 
 ## Pipeline
 
 ```
-Feature Description -> User Stories -> Specifications -> Design
-                       (needs-user-story)  (needs-spec)     |
+Feature Description -> User Stories -> Specifications -> Design -> Tasks
+                       (needs-user-story)  (needs-spec)     |      (needs-tasks)
                                                         +----+----+
                                                         |         |
                                                       ADRs    Architecture
@@ -19,6 +19,7 @@ Feature Description -> User Stories -> Specifications -> Design
 3. **Design** (`needs-design`) -- design the implementation that solves the user stories, constrained by specs and ADRs. Identifies technology decisions and offers to create ADRs. Output: `docs/design/`.
 4. **ADRs** (`needs-adr`) -- record significant technology decisions. Created during the design step or standalone. Output: `docs/adrs/`.
 5. **Architecture** (`needs-architecture`) -- document the current system architecture. Generated from design (greenfield) or codebase (existing). Output: `docs/architecture.adoc`.
+6. **Tasks** (`needs-tasks`) -- create a phased implementation task list from the design document. Tasks are organized into sequential phases with parallelism markers and full traceability back to specs and stories. Output: `docs/tasks/`.
 
 Supporting skill: `ears-requirements` provides the EARS methodology used by steps 1 and 2.
 
@@ -31,6 +32,7 @@ Supporting skill: `ears-requirements` provides the EARS methodology used by step
 | Design Document | `docs/design/` | `needs-design` | Ephemeral -- stale when stories/specs change, invalid after implementation |
 | ADRs | `docs/adrs/NNNN-title.adoc` | `needs-adr` | Permanent, append-only |
 | Architecture | `docs/architecture.adoc` | `needs-architecture` | Living, reflects current system state |
+| Tasks | `docs/tasks/` | `needs-tasks` | Ephemeral -- stale when design changes, status tracks completion |
 
 ### Staleness and validity
 
@@ -43,6 +45,12 @@ Specifications track their upstream version:
 
 - `:source-version:` -- which version of user stories the specs were derived from
 
+The task list tracks its upstream versions:
+
+- `:source-design-version:` -- which version of the design the tasks were derived from
+- `:source-stories-version:` and `:source-specs-version:` -- for full traceability
+- `:status:` -- `Current` (valid), `Stale` (design changed), `Implemented` (all tasks ticked)
+
 ## Skill Dependencies
 
 ```
@@ -51,7 +59,8 @@ proven-needs            <-- loaded by all workflow skills
 ├── needs-spec          <-- also loads ears-requirements
 ├── needs-design        <-- also loads needs-adr (for creating ADRs during design)
 ├── needs-adr
-└── needs-architecture
+├── needs-architecture
+└── needs-tasks
 ```
 
 Each workflow skill loads `proven-needs` first to understand the overall pipeline and conventions. Individual skills load additional prerequisites as needed (noted in their own SKILL.md).
@@ -65,6 +74,7 @@ Skills must be run in pipeline order because each step depends on the output of 
 3. `needs-design` -- requires `user-stories.adoc` and `docs/specs/`
 4. `needs-adr` -- no strict ordering (standalone or invoked from `needs-design`)
 5. `needs-architecture` -- requires `docs/design/` (greenfield) or codebase (existing)
+6. `needs-tasks` -- requires `docs/design/` (final step before implementation)
 
 If a required input is missing, the skill stops and directs the user to run the appropriate upstream skill first.
 
@@ -103,7 +113,7 @@ When this skill is loaded, **immediately** check the project's `AGENTS.md` for t
 This project follows the proven-needs spec-driven development (SDD) workflow.
 Before implementing any feature or making significant changes, load the
 `proven-needs` skill to understand the required pipeline:
-User Stories → Specifications → Design → ADRs → Architecture.
+User Stories → Specifications → Design → ADRs → Architecture → Tasks.
 <!-- proven-needs:end -->
 ```
 
