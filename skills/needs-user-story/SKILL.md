@@ -78,9 +78,39 @@ Acceptance Criteria:
 
 - Target file: `user-stories.adoc` in project root
 - If file does not exist: create with `= User Stories` header, `:version: 1.0.0`, `:last-updated:` set to today's date, and `:toc:` directive
-- If file exists: read current content, append new stories under appropriate feature section or create new feature section
+- If file exists: read current content. Determine whether the user is adding new stories, modifying existing stories, or removing stories, then follow the appropriate workflow below.
 - Preserve existing content and TOC
 - Always write the result to the file
+
+#### Adding New Stories
+
+1. Check if the feature section already exists. If so, append under it. If not, create a new feature section.
+2. Before appending, check for stories with substantially similar scope under the same feature. If a potential duplicate is found, present both to the user and ask whether to merge, replace, or keep both.
+3. Number new stories sequentially after the highest existing story number in the file.
+4. Bump the version (MINOR -- new content added).
+
+#### Modifying Existing Stories
+
+When the user asks to change, update, or rework existing stories:
+
+1. Read the current stories and identify which stories the user wants to modify.
+2. Present the proposed changes: show the current text alongside the new text for each story being modified.
+3. Ask the user to confirm the changes before applying.
+4. Bump the version based on the nature of the change:
+   - Acceptance criteria fundamentally rewritten: MAJOR
+   - Criteria refined or adjusted (non-breaking): MINOR
+   - Typos, formatting, clarifications: PATCH
+
+#### Removing Stories
+
+When the user asks to remove stories:
+
+1. Identify the stories to remove.
+2. **Warn about downstream impact:** Removing stories may make specifications (`docs/specs/`), design (`docs/design/`), and tasks (`docs/tasks/`) stale. Inform the user that downstream artifacts should be re-synced after removal.
+3. Ask the user to confirm the removal.
+4. Remove the stories. Do not renumber remaining stories (IDs must remain stable for traceability).
+5. If a feature section has no remaining stories, remove the section.
+6. Bump the version: MAJOR (content removed).
 
 ### 6. Version Management
 

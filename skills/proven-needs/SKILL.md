@@ -45,13 +45,19 @@ The design document tracks upstream versions and its own status:
 
 Specifications track their upstream version:
 
-- `:source-version:` -- which version of user stories the specs were derived from
+- `:source-stories-version:` -- which version of user stories the specs were derived from
+
+The architecture document tracks its upstream version:
+
+- `:source-design-version:` -- which version of the design the architecture was generated from (omitted in reverse-engineer mode)
 
 The task list tracks its upstream versions:
 
 - `:source-design-version:` -- which version of the design the tasks were derived from
 - `:source-stories-version:` and `:source-specs-version:` -- for full traceability
 - `:status:` -- `Current` (valid), `Stale` (design changed), `Implemented` (all tasks ticked)
+
+**Note:** Staleness is detected when a downstream skill is re-invoked and compares version numbers. The `:status:` field is not automatically set to `Stale` when upstream artifacts change -- it remains at its last-written value until the relevant skill re-evaluates. To verify the full artifact chain, re-run each downstream skill in pipeline order; it will detect and report any version mismatches.
 
 ## Skill Dependencies
 

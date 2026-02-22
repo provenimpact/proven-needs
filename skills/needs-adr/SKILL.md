@@ -81,6 +81,8 @@ Create or update `docs/adrs/index.adoc`:
 
 ```asciidoc
 = Architecture Decision Records
+:version: 1.0.0
+:last-updated: YYYY-MM-DD
 :toc:
 
 [cols="1,3,1,1", options="header"]
@@ -98,6 +100,13 @@ Create or update `docs/adrs/index.adoc`:
 | 2026-02-20
 |===
 ```
+
+**Index version rules:**
+- `:version:` uses SemVer, starts at `1.0.0`
+- MINOR bump when ADRs are added
+- PATCH bump for metadata-only changes (status updates, date corrections)
+- MAJOR bumps do not apply since ADRs are never removed
+- Always update `:last-updated:` to today's date
 
 ### Updating Existing ADRs
 

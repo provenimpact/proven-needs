@@ -46,6 +46,18 @@ Look for `docs/design/design.adoc`.
 | Source versions match current stories and specs | Inform user design appears current. Ask to force re-design or stop. |
 | Source versions differ | Design is stale. Present summary of what changed upstream. Ask user whether to redesign from scratch or incrementally update. |
 
+#### Incremental Update Process
+
+When the user chooses to incrementally update (rather than redesign from scratch):
+
+1. **Diff upstream changes:** Compare the new user stories and specs against the versions recorded in `:source-stories-version:` and `:source-specs-version:`. Identify added, modified, and removed stories/specs.
+2. **Preserve stable sections:** Keep design sections that are unaffected by the changes (components, data model elements, interface contracts that still align with unchanged stories).
+3. **Update affected sections:** Modify system design sections that are impacted by changed stories or specs. Add new components/sections for new stories.
+4. **Remove orphaned sections:** If stories were removed, remove or consolidate design elements that existed solely to serve those stories.
+5. **Update Story Resolution:** Re-map all stories, ensuring every current story and spec ID is accounted for. Remove resolution entries for deleted stories.
+6. **Bump version:** Apply SemVer rules -- MAJOR if design elements were removed, MINOR if added or modified, PATCH if only metadata changed.
+7. **Update source versions:** Set `:source-stories-version:` and `:source-specs-version:` to the current upstream versions. Set `:status:` to `Current`. Update `:last-updated:` to today's date.
+
 ### 3. Phase 0: Research and Decisions
 
 Analyze all user stories and specs to identify:

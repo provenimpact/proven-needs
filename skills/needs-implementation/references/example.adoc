@@ -184,15 +184,15 @@ Description:: Create the Product table with fields...
 * [x] TASK-003: Create Cart and CartItem entities and migrations [parallel]
 +
 Components:: Database, Cart model, CartItem model
-Stories:: Story 3
+Stories:: Story 3, Story 4
 Specs:: CART-001, CART-004
 Description:: Create Cart table and CartItem table...
 
 * [x] TASK-004: Create Order and OrderItem entities and migrations [parallel]
 +
 Components:: Database, Order model, OrderItem model
-Stories:: Story 4
-Specs:: CHK-004
+Stories:: Story 5
+Specs:: CHK-001
 Description:: Create Order table and OrderItem table...
 
 == Phase 2: Core Backend

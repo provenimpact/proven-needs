@@ -26,9 +26,9 @@ Read these sources in order:
 
 2. **If `:status:` is `Stale`:** Warn the user that the design is stale. Ask whether to proceed anyway or update the design first.
 
-3. **`user-stories.adoc`** -- for traceability. Extract story IDs and titles.
+3. **`user-stories.adoc`** -- for traceability. Extract story IDs and titles. **If missing:** Warn the user that traceability will be incomplete without user stories. Ask whether to proceed without story traceability or create user stories first using the `needs-user-story` skill.
 
-4. **`docs/specs/`** -- for traceability. Extract all spec IDs and their categories.
+4. **`docs/specs/`** -- for traceability. Extract all spec IDs and their categories. **If missing:** Warn the user that traceability will be incomplete without specifications. Ask whether to proceed without spec traceability or create specifications first using the `needs-spec` skill.
 
 5. **Existing codebase** -- if this is not a greenfield project, analyze what already exists to avoid creating tasks for things already implemented.
 
@@ -38,14 +38,17 @@ Look for `docs/tasks/tasks.adoc`.
 
 **If no task list exists:** Continue with step 3.
 
-**If task list exists:** Read `:status:` and `:source-design-version:`.
+**If task list exists:** Read `:status:`, `:source-design-version:`, `:source-stories-version:`, and `:source-specs-version:`.
+
+**Transitive staleness check:** Compare the task list's `:source-stories-version:` and `:source-specs-version:` against the current versions in `user-stories.adoc` and `docs/specs/index.adoc`. If these differ (even if `:source-design-version:` matches the current design), warn the user that upstream artifacts have changed since the design was created. The design itself may be stale even though its version number has not changed. Recommend updating the design first using `needs-design`, then recreating tasks.
 
 | Condition | Action |
 |---|---|
 | `:status:` is `Implemented` | Previous task list is complete. Start a fresh task list (overwrite). |
-| Source version matches current design and no tasks are ticked | Inform user task list appears current. Ask to force recreate or stop. |
-| Source version matches but some tasks are ticked | Inform user of progress. Ask to continue with existing list or recreate (warn about losing progress). |
-| Source version differs from current design | Task list is stale. Present summary of what changed in the design. Ask whether to recreate from scratch or incrementally update (preserving ticked tasks where possible). |
+| Source versions match current design, stories, and specs -- no tasks ticked | Inform user task list appears current. Ask to force recreate or stop. |
+| Source versions match but some tasks are ticked | Inform user of progress. Ask to continue with existing list or recreate (warn about losing progress). |
+| `:source-design-version:` differs from current design | Task list is stale. Present summary of what changed in the design. Ask whether to recreate from scratch or incrementally update (preserving ticked tasks where possible). |
+| `:source-stories-version:` or `:source-specs-version:` differ from current | Upstream artifacts changed but design may not reflect them. Warn user and recommend updating design first, then recreating tasks. Ask whether to proceed anyway or stop. |
 
 ### 3. Analyze Design for Task Decomposition
 
@@ -140,8 +143,8 @@ Description:: <What to implement and key details>
 |===
 | Story | Spec IDs | Tasks
 
-| Story 1: <title> | SPEC-001, SPEC-002 | TASK-001, TASK-005
-| Story 2: <title> | SPEC-003 | TASK-002, TASK-006
+| Story 1: <title> | AUTH-001, AUTH-002 | TASK-001, TASK-005
+| Story 2: <title> | UI-001, UI-003 | TASK-002, TASK-006
 |===
 ```
 

@@ -41,8 +41,8 @@ Read these sources based on the mode:
 - `docs/design/design.adoc` -- if available, use it to understand intended architecture alongside actual implementation
 
 **Update mode:**
-- Read existing `docs/architecture.adoc` and its `:version:`
-- `docs/design/design.adoc` -- if available and `:status:` is `Implemented`, incorporate the completed design changes
+- Read existing `docs/architecture.adoc` and its `:version:` and `:source-design-version:`
+- `docs/design/design.adoc` -- if available, compare its `:version:` against the architecture's `:source-design-version:`. If they differ, inform the user the architecture may be out of date relative to the design. If `:status:` is `Implemented`, incorporate the completed design changes.
 - If codebase exists, verify architecture document matches actual implementation
 
 ### 3. Generate or Update the Architecture Document
@@ -52,6 +52,7 @@ Write `docs/architecture.adoc` using this format:
 ```asciidoc
 = System Architecture
 :version: 1.0.0
+:source-design-version: <design version>
 :last-updated: YYYY-MM-DD
 :toc:
 
@@ -107,6 +108,7 @@ Remove sections that do not apply rather than leaving them empty.
 
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
+- `:source-design-version:` records which design version the architecture was generated or updated from. Omit in reverse-engineer mode if no design document exists.
 - MAJOR bump: components removed or fundamentally restructured
 - MINOR bump: components added or modified
 - PATCH bump: clarifications, formatting, metadata updates

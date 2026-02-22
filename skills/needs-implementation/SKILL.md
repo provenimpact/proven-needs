@@ -31,9 +31,9 @@ Read these sources in order:
 
 3. **If `:status:` is `Implemented`:** Inform the user all tasks are already complete. Ask whether to force re-implement or stop.
 
-4. **`docs/design/design.adoc`** -- implementation reference. Extract system design sections, story resolution mappings, and architectural decisions. Also read `data-model.adoc` and files in `contracts/` if they exist.
+4. **`docs/design/design.adoc`** -- implementation reference. Extract system design sections, story resolution mappings, and architectural decisions. Also read `data-model.adoc` and files in `contracts/` if they exist. **If missing:** Warn the user that implementation will lack architectural guidance. Ask whether to proceed using only the task list or create the design first using the `needs-design` skill.
 
-5. **`user-stories.adoc`** and **`docs/specs/`** -- for context on acceptance criteria and testable requirements.
+5. **`user-stories.adoc`** and **`docs/specs/`** -- for context on acceptance criteria and testable requirements. **If missing:** Note that story/spec context is unavailable. Proceed using the task list and design document.
 
 6. **Existing codebase** -- analyze current code structure, existing patterns, frameworks, and conventions to ensure new code is consistent.
 
@@ -52,13 +52,13 @@ Examine `docs/tasks/tasks.adoc` for tasks already ticked `[x]`.
 
 ### 3. Build Phase Todo List
 
-Parse the tasks belonging to the **current phase only** from `docs/tasks/tasks.adoc`. Create an exact copy as a Claude todo list using the TodoWrite tool:
+Parse the tasks belonging to the **current phase only** from `docs/tasks/tasks.adoc`. Create a tracking list for the current phase's tasks. If a todo-list tool is available (e.g., TodoWrite), use it for progress tracking. Otherwise, track progress by ticking tasks directly in `docs/tasks/tasks.adoc`.
 
 - Each task title from the phase becomes a todo item, prefixed with its task ID (e.g., "TASK-001: Initialize Next.js project with TypeScript configuration")
 - All items start as `pending`
 - Do **not** include tasks from other phases
 
-When moving to a subsequent phase, replace the entire todo list with a fresh one containing only the next phase's tasks.
+When moving to a subsequent phase, replace the tracking list with a fresh one containing only the next phase's tasks.
 
 ### 4. Implement Current Phase
 
