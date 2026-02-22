@@ -76,17 +76,33 @@ Each workflow skill loads `proven-needs` first to understand the overall pipelin
 
 ### Ordering
 
-Skills must be run in pipeline order because each step depends on the output of the previous:
+The recommended pipeline order runs every step for maximum traceability:
 
 1. `needs-user-story` -- no upstream dependency (takes feature description as input)
 2. `needs-spec` -- requires `user-stories.adoc`
-3. `needs-design` -- requires `user-stories.adoc` and `docs/specs/`
+3. `needs-design` -- requires `user-stories.adoc`; uses `docs/specs/` when available
 4. `needs-adr` -- no strict ordering (standalone or invoked from `needs-design`)
 5. `needs-architecture` -- requires `docs/design/` (greenfield) or codebase (existing)
-6. `needs-tasks` -- requires `docs/design/` (produces the phased task list)
-7. `needs-implementation` -- requires `docs/tasks/` and `docs/design/` (final step -- produces working code)
+6. `needs-tasks` -- uses `docs/design/` when available; falls back to user stories
+7. `needs-implementation` -- uses `docs/tasks/` when available; falls back to design's Story Resolution
 
-If a required input is missing, the skill stops and directs the user to run the appropriate upstream skill first.
+If a required input is missing, the skill warns the user about the traceability impact and asks whether to proceed in reduced mode or create the missing artifact first.
+
+### Fast-Track Paths
+
+Not every project needs every step. The pipeline supports fast-tracking by skipping intermediate steps. User stories are always required -- they are the root input for every path.
+
+| Path | Skills Run | Skipped | Traceability Impact |
+|---|---|---|---|
+| **Minimal** | user-story -> design -> implementation | spec, adr, architecture, tasks | No spec IDs. No task phasing. Stories resolved directly to code. |
+| **Without specs** | user-story -> design -> tasks -> implementation | spec, adr, architecture | No spec-level traceability. Design and tasks reference only story IDs. |
+| **Without tasks** | user-story -> spec -> design -> implementation | adr, architecture, tasks | Full spec traceability. No phased execution -- implementation follows story resolution order. |
+| **Standard** | user-story -> spec -> design -> tasks -> implementation | adr, architecture | Full traceability. Technology decisions undocumented. |
+| **Full** | All skills | Nothing | Complete traceability and documentation. |
+
+ADRs and Architecture are always optional -- no downstream skill has a hard dependency on them. They can be added at any point.
+
+**Reduced mode convention:** When a skill runs without an optional upstream artifact, it sets the corresponding `:source-*-version:` attribute to `n/a` in the output artifact. This signals to downstream skills and humans that the full pipeline was not followed and certain traceability links are unavailable. Quality checklist items that depend on the skipped artifact become conditional.
 
 ## Conventions
 

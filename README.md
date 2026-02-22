@@ -24,6 +24,10 @@ Feature Description -> User Stories -> Specifications -> Design -> Tasks -> Impl
 5. Create a phased implementation task list (`needs-tasks` skill)
 6. Implement the code phase by phase (`needs-implementation` skill)
 
+### Fast-Track
+
+Not every project needs every step. The pipeline supports skipping intermediate steps when full traceability is not required. User stories are always the minimum input. For example, you can go directly from stories to design to implementation, skipping specs and tasks entirely. Each skill warns about the traceability impact of missing upstream artifacts and asks before proceeding in reduced mode. See the `proven-needs` skill for the full table of supported fast-track paths.
+
 ### Artifact Lifecycle
 
 | Artifact | Location | Lifecycle |

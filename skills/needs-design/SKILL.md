@@ -26,7 +26,7 @@ Read these sources in order:
 
 1. **`user-stories.adoc`** -- primary driver. Extract `:version:`, all stories, acceptance criteria, and feature groupings. **If missing:** Stop and inform the user that user stories must be created first using the `needs-user-story` skill.
 
-2. **`docs/specs/index.adoc`** -- testable requirements. Extract `:version:`, all spec IDs and their categories. **If missing:** Stop and inform the user that specifications must be created first using the `needs-spec` skill.
+2. **`docs/specs/index.adoc`** -- testable requirements. Extract `:version:`, all spec IDs and their categories. **If missing:** Warn the user that specifications provide testable, black-box requirements and enable spec-level traceability. Without specs, the design will reference only story-level acceptance criteria and spec IDs will not be available in Story Resolution. Ask the user whether to proceed without specs or create specifications first using the `needs-spec` skill. If proceeding: set `:source-specs-version:` to `n/a` in the design output.
 
 3. **`docs/adrs/`** -- technology constraints and decisions already made. Read all ADRs with status `Accepted`. **If missing:** Note that no decisions exist yet; Phase 0 will address this.
 
@@ -60,7 +60,7 @@ When the user chooses to incrementally update (rather than redesign from scratch
 
 ### 3. Phase 0: Research and Decisions
 
-Analyze all user stories and specs to identify:
+Analyze all user stories and specs (if available) to identify:
 
 1. **Technology decisions needed** -- for each story, what technology choices are required to solve it? Cross-reference against existing ADRs. Examples:
    - "Story 3 requires persistent storage -- which database?" (if no ADR exists)
@@ -81,7 +81,7 @@ Analyze all user stories and specs to identify:
 
 ### 4. Phase 1: Design
 
-Design the solution that solves the user stories while satisfying the specs.
+Design the solution that solves the user stories while satisfying the specs (when available).
 
 **The design structure is adaptive.** Choose an organization appropriate for the project type. The sections below are guidance, not a rigid template -- adapt, merge, split, or reorder sections based on what the project needs.
 
@@ -126,9 +126,9 @@ Write these to `docs/design/contracts/` when relevant. Skip for purely internal 
 For each user story (or logical group of related stories), describe:
 - **Which components are involved** in solving this story
 - **How the acceptance criteria are met** by the design
-- **Which spec IDs are satisfied** by which design elements
+- **Which spec IDs are satisfied** by which design elements (when specs are available)
 
-This section is the proof that the design solves the stories. Every user story must appear here. Every spec ID must be mapped to at least one design element.
+This section is the proof that the design solves the stories. Every user story must appear here. When specs are available, every spec ID must be mapped to at least one design element. When specs are not available (`:source-specs-version:` is `n/a`), omit spec ID references from the criteria mappings and map acceptance criteria directly to design elements instead.
 
 ### 5. Write Design Files
 
@@ -189,7 +189,7 @@ Criteria::
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
 - `:source-stories-version:` records which user stories version was used
-- `:source-specs-version:` records which specs version was used
+- `:source-specs-version:` records which specs version was used; set to `n/a` if specs were skipped
 - `:last-updated:` set to today's date
 
 **Additional files (when applicable):**
@@ -200,11 +200,11 @@ Criteria::
 
 Before finalizing, verify every item:
 - Every user story is addressed in the Story Resolution section
-- Every spec ID is mapped to at least one design element
+- Every spec ID is mapped to at least one design element (skip if `:source-specs-version:` is `n/a`)
 - All ADR decisions are respected in the design
 - No unresolved unknowns remain (or are explicitly listed as open questions)
 - Design is implementable (specific enough to code from)
-- Source versions are recorded correctly
+- Source versions are recorded correctly (`:source-specs-version:` is `n/a` if specs were skipped)
 - Data model covers all entities implied by the stories (if applicable)
 - Interface contracts match the spec requirements (if applicable)
 
