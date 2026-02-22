@@ -22,7 +22,7 @@ Creating an implementation task list involves these steps:
 
 Read these sources in order:
 
-1. **`docs/design/design.adoc`** -- primary driver. Extract `:version:`, `:status:`, system design sections, and story resolution mappings. Also read `data-model.adoc` and `contracts/` if they exist. **If missing:** Stop and inform the user that a design must be created first using the `needs-design` skill.
+1. **`docs/design/design.adoc`** -- primary driver. Extract `:version:`, `:status:`, system design sections, and story resolution mappings. Also read `data-model.adoc` and `contracts/` if they exist. **If missing:** Warn the user that the design document provides component structure, data model, and interface definitions that enable well-structured task decomposition. Without a design, tasks will be derived directly from user stories and acceptance criteria, resulting in less architectural guidance and no `Components::` field per task. Ask the user whether to proceed without a design or create one first using the `needs-design` skill. If proceeding: set `:source-design-version:` to `n/a` and follow the **Story-Driven Task Derivation** process in step 3.
 
 2. **If `:status:` is `Stale`:** Warn the user that the design is stale. Ask whether to proceed anyway or update the design first.
 
@@ -50,9 +50,11 @@ Look for `docs/tasks/tasks.adoc`.
 | `:source-design-version:` differs from current design | Task list is stale. Present summary of what changed in the design. Ask whether to recreate from scratch or incrementally update (preserving ticked tasks where possible). |
 | `:source-stories-version:` or `:source-specs-version:` differ from current | Upstream artifacts changed but design may not reflect them. Warn user and recommend updating design first, then recreating tasks. Ask whether to proceed anyway or stop. |
 
-### 3. Analyze Design for Task Decomposition
+### 3. Analyze for Task Decomposition
 
-Walk through the design document systematically to identify discrete implementation units. Each task should be a single coding unit -- small enough to implement in one sitting.
+#### Design-Driven Decomposition (default)
+
+When a design document exists, walk through it systematically to identify discrete implementation units. Each task should be a single coding unit -- small enough to implement in one sitting.
 
 **Sources of tasks:**
 
@@ -69,9 +71,22 @@ Walk through the design document systematically to identify discrete implementat
 **For each identified task, record:**
 - A clear, actionable title
 - Which design components are involved
-- Which spec IDs it satisfies
+- Which spec IDs it satisfies (when specs are available)
 - Which user stories it contributes to
 - Whether it depends on other tasks (determines phase placement and parallelism)
+
+#### Story-Driven Task Derivation (when no design exists)
+
+When `:source-design-version:` is `n/a`, derive tasks directly from user stories and acceptance criteria instead of design components:
+
+1. Read each story and its acceptance criteria from `user-stories.adoc`
+2. For each story, create one or more tasks that implement its acceptance criteria. Group related criteria into a single task when they are tightly coupled; split into separate tasks when they are independently implementable.
+3. For each task, record:
+   - A clear, actionable title
+   - Which user stories it implements
+   - Which spec IDs it satisfies (when specs are available; omit `Specs::` if `:source-specs-version:` is also `n/a`)
+   - The `Components::` field is omitted since there is no design to reference
+4. Use story feature groupings to inform phase organization (e.g., stories in the same feature area likely share implementation dependencies)
 
 ### 4. Organize into Phases
 
@@ -155,8 +170,8 @@ Description:: <What to implement and key details>
 
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
-- `:source-design-version:` records which design version was used
-- `:source-stories-version:` and `:source-specs-version:` record upstream versions for full traceability
+- `:source-design-version:` records which design version was used; set to `n/a` if design was skipped
+- `:source-stories-version:` and `:source-specs-version:` record upstream versions for full traceability; set to `n/a` if skipped
 - `:last-updated:` set to today's date
 
 **Task IDs:** Sequential within the document: TASK-001, TASK-002, etc. IDs are stable -- do not renumber when updating.
@@ -166,15 +181,15 @@ Description:: <What to implement and key details>
 ### 6. Quality Checklist
 
 Before finalizing, verify every item:
-- Every spec ID from `docs/specs/` appears in at least one task
+- Every spec ID from `docs/specs/` appears in at least one task (skip if `:source-specs-version:` is `n/a`)
 - Every user story is covered by the aggregate tasks
-- Every design section (system design, data model, contracts) has corresponding tasks
+- Every design section (system design, data model, contracts) has corresponding tasks (skip if `:source-design-version:` is `n/a`)
 - No circular dependencies exist between phases
 - Phase ordering respects actual implementation dependencies
 - Each task is a discrete, implementable coding unit
 - Parallel/sequential markers are correct (parallel tasks truly have no intra-phase dependencies)
 - The traceability matrix is complete and accurate
-- Source versions are recorded correctly
+- Source versions are recorded correctly (use `n/a` for skipped upstream artifacts)
 
 ## Reference
 

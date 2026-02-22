@@ -25,7 +25,7 @@ Steps 3--7 repeat for each phase.
 
 Read these sources in order:
 
-1. **`docs/tasks/tasks.adoc`** -- primary driver. Extract `:version:`, `:status:`, all phases, all tasks with their metadata (Components, Stories, Specs, Description, parallel/sequential markers). **If missing:** Stop and inform the user that tasks must be created first using the `needs-tasks` skill.
+1. **`docs/tasks/tasks.adoc`** -- primary driver. Extract `:version:`, `:status:`, all phases, all tasks with their metadata (Components, Stories, Specs, Description, parallel/sequential markers). **If missing:** Check whether `docs/design/design.adoc` exists. If so, warn the user that implementing without a task list means no phased execution or parallelism markers -- implementation will follow the design's Story Resolution section story-by-story. Ask whether to proceed with story-by-story implementation from the design, or create tasks first using the `needs-tasks` skill. If proceeding, follow the **Story-by-Story Implementation** flow (see below). If neither tasks nor design exist, stop and inform the user that at minimum a design document is needed to implement from.
 
 2. **If `:status:` is `Stale`:** Warn the user that the task list is stale (design has changed). Ask whether to proceed anyway or update the task list first using `needs-tasks`.
 
@@ -115,10 +115,36 @@ Present a question with options:
 **If all phases are complete:**
 
 1. Set `:status: Implemented` in `docs/tasks/tasks.adoc`
-2. Set `:status: Implemented` in `docs/design/design.adoc`
-3. Update `:last-updated:` to today's date in both files
+2. Set `:status: Implemented` in `docs/design/design.adoc` (if it exists)
+3. Update `:last-updated:` to today's date in all updated files
 4. Commit these status updates
 5. Inform the user that implementation is complete
+
+### Story-by-Story Implementation (when no task list exists)
+
+When implementing directly from the design document without a task list:
+
+1. **Read the Story Resolution section** of `docs/design/design.adoc`. Each story resolution entry describes which components are involved and how acceptance criteria map to design elements.
+
+2. **Implement one story at a time**, in the order they appear in the Story Resolution section. For each story:
+   a. Create a tracking list for the story (if a todo-list tool is available, use it; otherwise track mentally).
+   b. Read the `Components::` and `Criteria::` fields for the story.
+   c. Implement all design elements mapped to the story's criteria. Use the System Design section of the design document for architectural guidance on each component.
+   d. If a component is shared across multiple stories and has already been partially implemented for a previous story, extend it rather than duplicating.
+
+3. **Verify after each story:** Run the same verification steps as phase verification (build, lint, typecheck, test).
+
+4. **Commit after each story** with a message following the pattern: `feat(<story-scope>): implement story N -- <Story Title>`.
+
+5. **Ask to continue:** After each story, ask the user whether to proceed to the next story or stop.
+
+6. **When all stories are implemented:**
+   a. Set `:status: Implemented` in `docs/design/design.adoc`
+   b. Update `:last-updated:` to today's date
+   c. Commit the status update
+   d. Inform the user that implementation is complete
+
+**Note:** No `docs/tasks/tasks.adoc` is created or updated in this flow. Progress is tracked only via commits.
 
 ## Reference
 
