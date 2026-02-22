@@ -12,9 +12,9 @@ User stories from `user-stories.adoc` (version 1.0.0) for an e-commerce site wit
 
 ```
 Proposed categories:
-  1. User Interface (UI) - 10 requirements
+  1. User Interface (UI) - 7 requirements
   2. Search (SRCH) - 3 requirements
-  3. Cart Management (CART) - 5 requirements
+  3. Cart Management (CART) - 4 requirements
   4. Checkout (CHK) - 4 requirements
   5. Error Handling (ERR) - 2 requirements
   6. Notifications (NOTIF) - 1 requirement
@@ -27,15 +27,15 @@ Add, remove, rename, or merge categories?
 ```asciidoc
 = Specifications
 :version: 1.0.0
-:source-version: 1.0.0
+:source-stories-version: 1.0.0
 :last-updated: 2026-02-20
 :toc:
 
 == Categories
 
-* <<ui.adoc#,User Interface (UI)>> -- 10 requirements
+* <<ui.adoc#,User Interface (UI)>> -- 7 requirements
 * <<search.adoc#,Search (SRCH)>> -- 3 requirements
-* <<cart-management.adoc#,Cart Management (CART)>> -- 5 requirements
+* <<cart-management.adoc#,Cart Management (CART)>> -- 4 requirements
 * <<checkout.adoc#,Checkout (CHK)>> -- 4 requirements
 * <<error-handling.adoc#,Error Handling (ERR)>> -- 2 requirements
 * <<notifications.adoc#,Notifications (NOTIF)>> -- 1 requirement
@@ -74,18 +74,6 @@ Add, remove, rename, or merge categories?
 | Display item prices and cart total
 | Story 4: View Cart, Criterion 2
 
-| UI-008
-| Provide shipping address form
-| Story 5: Checkout Process, Criterion 1
-
-| UI-009
-| Allow payment method selection
-| Story 5: Checkout Process, Criterion 2
-
-| UI-010
-| Display order summary before confirmation
-| Story 5: Checkout Process, Criterion 3
-
 | SRCH-001
 | Filter products by category
 | Story 1: View Product Catalog, Criterion 3
@@ -113,10 +101,6 @@ Add, remove, rename, or merge categories?
 | CART-004
 | Remove item and update total on removal
 | Story 4: View Cart, Criterion 4
-
-| CART-005
-| Display confirmation page on order completion
-| Story 5: Checkout Process, Criterion 4
 
 | CHK-001
 | Display confirmation page on order completion
@@ -235,7 +219,7 @@ No changes to: UI, CART, CHK, ERR
 
 === Result After Sync
 
-- `index.adoc`: version bumped to 2.0.0 (requirements removed), `:source-version:` updated to 1.1.0
+- `index.adoc`: version bumped to 2.0.0 (requirements removed), `:source-stories-version:` updated to 1.1.0
 - `search.adoc`: version bumped to 2.0.0 (SRCH-002 removed, SRCH-003 modified)
 - `order-management.adoc`: created at version 1.0.0 with ORD-001 and ORD-002
 - `notifications.adoc`: version bumped to 1.1.0 (NOTIF-002 added)

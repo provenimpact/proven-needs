@@ -99,7 +99,7 @@ Create `docs/specs/` with one file per category plus an index.
 ```asciidoc
 = Specifications
 :version: 1.0.0
-:source-version: <user-stories version>
+:source-stories-version: <user-stories version>
 :last-updated: YYYY-MM-DD
 :toc:
 
@@ -155,7 +155,7 @@ Each requirement includes:
 
 **Version rules for spec files:**
 - `:version:` uses SemVer, starts at `1.0.0`
-- `:source-version:` (index only) records which user stories version was used
+- `:source-stories-version:` (index only) records which user stories version was used
 - Updated on every sync according to the bump rules in step 6
 
 ### 6. Sync Workflow
@@ -164,7 +164,7 @@ When specifications already exist:
 
 #### 6.1 Quick Staleness Check
 
-1. Read `:source-version:` from `docs/specs/index.adoc`
+1. Read `:source-stories-version:` from `docs/specs/index.adoc`
 2. Read `:version:` from `user-stories.adoc`
 3. If versions match, inform the user that specs appear up to date. Ask if they want to force a re-analysis. If not, stop.
 
@@ -221,7 +221,7 @@ After user confirmation:
 | Requirements added or modified | MINOR |
 | Traceability or metadata updates only | PATCH |
 
-- Update `:source-version:` in `index.adoc` to match current user stories version
+- Update `:source-stories-version:` in `index.adoc` to match current user stories version
 - Update `:version:` in all affected category files and `index.adoc`
 - Update `:last-updated:` to today's date in all changed files
 - Update the traceability matrix
@@ -240,7 +240,7 @@ Before finalizing, verify every item:
 - The traceability matrix is complete and matches all requirement files
 - All category files have consistent format
 - Version numbers are correct and updated
-- `:source-version:` matches the user stories `:version:`
+- `:source-stories-version:` matches the user stories `:version:`
 
 ## Reference
 

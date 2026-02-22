@@ -7,6 +7,7 @@ This file shows a complete architecture document for an e-commerce project, gene
 ....
 = System Architecture
 :version: 1.0.0
+:source-design-version: 1.0.0
 :last-updated: 2026-02-20
 :toc:
 

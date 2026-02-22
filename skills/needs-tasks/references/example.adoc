@@ -8,7 +8,7 @@ Given:
 
 * `docs/design/design.adoc` at version `1.0.0` with system design (frontend, backend, state management, Stripe integration) and story resolution for 5 stories
 * `docs/design/data-model.adoc` at version `1.0.0` with entities: Product, Cart, CartItem, Order, OrderItem
-* `user-stories.adoc` at version `1.0.0` with 5 stories (Browse Products, Search Products, Manage Shopping Cart, Checkout, Order Confirmation Email)
+* `user-stories.adoc` at version `1.0.0` with 5 stories (View Product Catalog, Search Products, Add to Cart, View Cart, Checkout Process)
 * `docs/specs/` at version `1.0.0` with categories UI, SRCH, CART, CHK, ERR, NOTIF
 
 == Task List File (docs/tasks/tasks.adoc)
@@ -48,15 +48,15 @@ Description:: Create the Product table with fields: id (UUID PK), name (VARCHAR 
 * [ ] TASK-003: Create Cart and CartItem entities and migrations [parallel]
 +
 Components:: Database, Cart model, CartItem model
-Stories:: Story 3
+Stories:: Story 3, Story 4
 Specs:: CART-001, CART-004
 Description:: Create Cart table (id, session_id indexed, created_at, updated_at) and CartItem table (id, cart_id FK, product_id FK, quantity >= 1). Set up cascade delete from Cart to CartItem.
 
 * [ ] TASK-004: Create Order and OrderItem entities and migrations [parallel]
 +
 Components:: Database, Order model, OrderItem model
-Stories:: Story 4
-Specs:: CHK-004
+Stories:: Story 5
+Specs:: CHK-001
 Description:: Create Order table (id, cart_id FK, status ENUM [pending/paid/shipped/cancelled], total DECIMAL, shipping_address JSONB, stripe_payment_id, created_at) and OrderItem table (id, order_id FK, product_id FK, quantity, unit_price as snapshot).
 
 == Phase 2: Core Backend
@@ -67,14 +67,14 @@ Implement API endpoints and business logic for product browsing, search, and car
 +
 Components:: Backend API, Product model
 Stories:: Story 1
-Specs:: UI-001, UI-003
-Description:: Return paginated product list. Support `?page=` for pagination (default page size 20). Return product fields: id, name, price, image_url, stock_quantity. Include total count for frontend pagination.
+Specs:: UI-001, SRCH-001, SRCH-002
+Description:: Return paginated product list. Support `?page=` for pagination (default page size 20), `?category=` for filtering, and `?sort=` for sorting. Return product fields: id, name, price, image_url, stock_quantity. Include total count for frontend pagination.
 
 * [ ] TASK-006: Implement GET /api/products with search [parallel]
 +
 Components:: Backend API, Product model
 Stories:: Story 2
-Specs:: SRCH-001, SRCH-002
+Specs:: SRCH-003
 Description:: Add `?q=` query parameter support to the products endpoint. Perform text search on product name field. Return filtered results with same pagination support.
 
 * [ ] TASK-007: Implement GET /api/products/:id endpoint [parallel]
@@ -112,7 +112,7 @@ Build the UI components, pages, and client-side state management.
 * [ ] TASK-011: Implement CartContext state management [sequential]
 +
 Components:: CartContext (React Context)
-Stories:: Story 3
+Stories:: Story 3, Story 4
 Specs:: CART-001, CART-004
 Description:: Create React Context for cart state. Store cart items, provide add/update/remove actions that call backend APIs. Sync state with localStorage for anonymous users. Expose item count for CartIcon.
 
@@ -126,8 +126,8 @@ Description:: Server-rendered page fetching products from GET /api/products. Ren
 * [ ] TASK-013: Build Cart Page [parallel]
 +
 Components:: Cart Page, CartContext
-Stories:: Story 3
-Specs:: CART-001, CART-002, CART-003, CART-004
+Stories:: Story 4
+Specs:: UI-006, UI-007, CART-003, CART-004
 Description:: Client-side page reading from CartContext. Render line items with quantity controls (+/- buttons) and remove button. Display running total computed from line items. Add "Proceed to Checkout" button.
 
 * [ ] TASK-014: Build CartIcon header component [parallel]
@@ -140,8 +140,8 @@ Description:: Header icon showing current item count from CartContext. Link to C
 * [ ] TASK-015: Build Checkout Page [sequential]
 +
 Components:: Checkout Page
-Stories:: Story 4
-Specs:: CHK-001, CHK-002, CHK-003
+Stories:: Story 5
+Specs:: CHK-001, CHK-002, CHK-003, CHK-004
 Description:: Multi-step form: Step 1 -- shipping address form with validation. Step 2 -- payment input (placeholder, wired to Stripe in Phase 4). Step 3 -- order review showing line items, totals, and shipping address. Submit button calls POST /api/checkout.
 
 == Phase 4: Integration
@@ -151,15 +151,15 @@ Connect external services: Stripe payment processing and order confirmation emai
 * [ ] TASK-016: Integrate Stripe payment processing [sequential]
 +
 Components:: POST /api/checkout, Checkout Page, Stripe SDK
-Stories:: Story 4
-Specs:: CHK-002, CHK-004
+Stories:: Story 5
+Specs:: CHK-003, ERR-002
 Description:: Server-side: install Stripe SDK, create PaymentIntent in POST /api/checkout, validate payment before persisting order, store stripe_payment_id on Order. Client-side: add Stripe Elements card input to Checkout Page step 2. Handle payment confirmation flow.
 
 * [ ] TASK-017: Implement order confirmation email [sequential]
 +
 Components:: POST /api/checkout, email service
 Stories:: Story 5
-Specs:: NOTIF-002, NOTIF-003
+Specs:: NOTIF-001
 Description:: After successful payment in POST /api/checkout, trigger transactional email via email service. Email template includes: order ID, line items with quantities and prices, totals, and shipping address. Choose and configure email provider (e.g., SendGrid, AWS SES).
 
 == Phase 5: Error Handling and Polish
@@ -169,9 +169,9 @@ Implement error responses, validation messages, and edge case handling across th
 * [ ] TASK-018: Implement error handling across all endpoints and UI [parallel]
 +
 Components:: All API endpoints, Product Catalog Page, Cart Page, Checkout Page
-Stories:: Story 2, Story 3, Story 4
-Specs:: ERR-001, ERR-002, NOTIF-001
-Description:: API: return appropriate error responses (409 for stock conflicts, 404 for not found, 400 for validation). Product Catalog: display "no results" for empty search. Cart: show error when item is out of stock on add/update. Checkout: display order confirmation success page after successful checkout. Handle network errors gracefully in all frontend pages.
+Stories:: Story 2, Story 3, Story 5
+Specs:: ERR-001, ERR-002
+Description:: API: return appropriate error responses (409 for stock conflicts, 404 for not found, 400 for validation). Product Catalog: display "no results" for empty search. Cart: show error when item is out of stock on add/update. Checkout: display payment error with retry option. Handle network errors gracefully in all frontend pages.
 
 == Traceability Matrix
 
@@ -179,24 +179,24 @@ Description:: API: return appropriate error responses (409 for stock conflicts, 
 |===
 | Story | Spec IDs | Tasks
 
-| Story 1: Browse Products
-| UI-001, UI-002, UI-003
+| Story 1: View Product Catalog
+| UI-001, UI-002, SRCH-001, SRCH-002
 | TASK-002, TASK-005, TASK-007, TASK-012
 
 | Story 2: Search Products
-| SRCH-001, SRCH-002, SRCH-003, ERR-001
+| SRCH-003, ERR-001
 | TASK-006, TASK-012, TASK-018
 
-| Story 3: Manage Shopping Cart
-| CART-001, CART-002, CART-003, CART-004, ERR-002
-| TASK-003, TASK-008, TASK-009, TASK-010, TASK-011, TASK-013, TASK-014, TASK-018
+| Story 3: Add to Cart
+| UI-003, UI-004, UI-005, CART-001, CART-002
+| TASK-003, TASK-008, TASK-009, TASK-011, TASK-014, TASK-018
 
-| Story 4: Checkout
-| CHK-001, CHK-002, CHK-003, CHK-004, NOTIF-001
-| TASK-004, TASK-015, TASK-016, TASK-018
+| Story 4: View Cart
+| UI-006, UI-007, CART-003, CART-004
+| TASK-003, TASK-010, TASK-011, TASK-013
 
-| Story 5: Order Confirmation Email
-| NOTIF-002, NOTIF-003
-| TASK-017
+| Story 5: Checkout Process
+| CHK-001, CHK-002, CHK-003, CHK-004, ERR-002, NOTIF-001
+| TASK-004, TASK-015, TASK-016, TASK-017, TASK-018
 |===
 ....

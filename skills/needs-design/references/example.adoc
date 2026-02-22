@@ -95,47 +95,52 @@ Stripe:: Payment processing via Stripe SDK. Server-side: create PaymentIntents. 
 
 == Story Resolution
 
-=== Story 1: Browse Products
+=== Story 1: View Product Catalog
 
 Components:: Product Catalog Page, ProductCard, GET /api/products
 Criteria::
-* Display paginated product list -> Product Catalog Page renders ProductCard components from GET /api/products (UI-001)
-* Show product image, name, price -> ProductCard component displays these fields (UI-002)
-* Load more products on scroll -> Pagination via `?page=` parameter, infinite scroll on frontend (UI-003)
+* Display products in grid or list -> Product Catalog Page renders ProductCard components from GET /api/products (UI-001)
+* Show product name, price, and image -> ProductCard component displays these fields (UI-002)
+* Filter by category -> GET /api/products supports `?category=` parameter, Product Catalog Page renders category filter (SRCH-001)
+* Sort by selected attribute -> GET /api/products supports `?sort=` parameter, Product Catalog Page renders sort control (SRCH-002)
 
 === Story 2: Search Products
 
 Components:: SearchBar, Product Catalog Page, GET /api/products
 Criteria::
-* Search by product name -> SearchBar sends `?q=` to GET /api/products, backend does text search on product name (SRCH-001)
-* Display matching results -> Product Catalog Page re-renders with filtered results (SRCH-002)
-* Show "no results" message -> Frontend displays empty state when API returns zero products (SRCH-003, ERR-001)
+* Search by keyword -> SearchBar sends `?q=` to GET /api/products, backend does text search on product name (SRCH-003)
+* Display matching results -> Product Catalog Page re-renders with filtered results (SRCH-003)
+* Show "no results" message -> Frontend displays empty state when API returns zero products (ERR-001)
+* Highlight matching terms -> Frontend highlights search terms in ProductCard text (SRCH-003)
 
-=== Story 3: Manage Shopping Cart
+=== Story 3: Add to Cart
 
-Components:: CartContext, Cart Page, POST/PATCH/DELETE /api/cart/items
+Components:: ProductCard, CartContext, CartIcon, POST /api/cart/items
 Criteria::
-* Add item to cart -> POST /api/cart/items, CartContext updates, CartIcon reflects count (CART-001)
-* Update quantity -> PATCH /api/cart/items/:id with new quantity (CART-002)
-* Remove item -> DELETE /api/cart/items/:id (CART-003)
-* Display running total -> Cart Page computes total from CartContext line items (CART-004)
-* If item out of stock, show error -> API validates stock on add/update, returns 409, frontend shows error message (ERR-002)
+* Display add-to-cart button -> ProductCard shows button on each product (UI-003)
+* Update cart count -> POST /api/cart/items, CartContext updates, CartIcon reflects new count (UI-004, CART-001)
+* Show success confirmation -> Frontend displays success message after add (UI-005)
+* Increment quantity for duplicate -> POST /api/cart/items increments quantity if product already in cart (CART-002)
 
-=== Story 4: Checkout
+=== Story 4: View Cart
 
-Components:: Checkout Page, POST /api/checkout, Stripe integration
+Components:: Cart Page, CartContext, PATCH/DELETE /api/cart/items
 Criteria::
-* Enter shipping address -> Checkout Page step 1: address form with validation (CHK-001)
-* Enter payment details -> Checkout Page step 2: Stripe Elements card input (CHK-002)
-* Review order before confirming -> Checkout Page step 3: order summary with line items and totals (CHK-003)
-* Receive order confirmation -> POST /api/checkout returns order ID and confirmation, frontend displays success page (CHK-004, NOTIF-001)
+* Display cart items with quantities -> Cart Page reads CartContext and renders line items (UI-006)
+* Display prices and total -> Cart Page computes and shows item prices and cart total (UI-007)
+* Update total on quantity change -> PATCH /api/cart/items/:id, CartContext updates, Cart Page re-renders total (CART-003)
+* Remove item and update total -> DELETE /api/cart/items/:id, CartContext updates, Cart Page removes item and re-renders total (CART-004)
 
-=== Story 5: Order Confirmation Email
+=== Story 5: Checkout Process
 
-Components:: POST /api/checkout, email service
+Components:: Checkout Page, POST /api/checkout, Stripe integration, email service
 Criteria::
-* Receive email after purchase -> POST /api/checkout triggers email via transactional email service after successful payment (NOTIF-002)
-* Email contains order details -> Email template includes order ID, line items, totals, shipping address (NOTIF-003)
+* Shipping address form -> Checkout Page step 1: address form with validation (CHK-002)
+* Payment method selection -> Checkout Page step 2: Stripe Elements card input (CHK-003)
+* Order summary before confirmation -> Checkout Page step 3: order summary with line items and totals (CHK-004)
+* Display confirmation page -> POST /api/checkout returns order ID, frontend displays success page (CHK-001)
+* Send confirmation email -> POST /api/checkout triggers email via transactional email service after successful payment (NOTIF-001)
+* Handle payment failure -> If Stripe PaymentIntent fails, display error and allow retry (ERR-002)
 ....
 
 == Data Model File (docs/design/data-model.adoc)

@@ -2,13 +2,13 @@
 
 Spec driven development workflow for creating production grade software.
 
-Acceptance criteria and specifications follow the [EARS (Easy Approach to Requirements Syntax)](.opencode/skills/ears-requirements/reference/ears-reference.adoc) standard to ensure requirements are unambiguous, verifiable, and consistent.
+Acceptance criteria and specifications follow the [EARS (Easy Approach to Requirements Syntax)](skills/ears-requirements/reference/ears-reference.adoc) standard to ensure requirements are unambiguous, verifiable, and consistent.
 
 ## Workflow
 
 ```
-Feature Description -> User Stories -> Specifications -> Design
-                       (needs-user-story)  (needs-spec)     |
+Feature Description -> User Stories -> Specifications -> Design -> Tasks -> Implementation
+                       (needs-user-story)  (needs-spec)     |      (needs-tasks) (needs-implementation)
                                                         +----+----+
                                                         |         |
                                                       ADRs    Architecture
@@ -21,6 +21,8 @@ Feature Description -> User Stories -> Specifications -> Design
 4. Design the implementation that solves the stories (`needs-design` skill)
    - Record technology decisions as ADRs (`needs-adr` skill)
    - Document the resulting architecture (`needs-architecture` skill)
+5. Create a phased implementation task list (`needs-tasks` skill)
+6. Implement the code phase by phase (`needs-implementation` skill)
 
 ### Artifact Lifecycle
 
@@ -31,10 +33,12 @@ Feature Description -> User Stories -> Specifications -> Design
 | Design Document | `docs/design/` | Ephemeral -- invalid after stories/specs change or implementation completes |
 | ADRs | `docs/adrs/` | Permanent, append-only records |
 | Architecture | `docs/architecture.adoc` | Living document reflecting current system state |
+| Tasks | `docs/tasks/` | Ephemeral -- stale when design changes, status tracks completion |
+| Implemented Code | project source | Living -- the actual codebase produced from the task list |
 
 ## Skills
 
-This project provides six [OpenCode skills](https://opencode.ai/docs/skills/) that work together:
+This project provides eight [OpenCode skills](https://opencode.ai/docs/skills/) that work together, plus a shared orchestrator (`proven-needs`) loaded by all workflow skills:
 
 ### `needs-user-story`
 
@@ -55,7 +59,7 @@ The skill will:
 2. Write acceptance criteria using EARS sentence types
 3. Output stories in AsciiDoc format to `user-stories.adoc` with SemVer versioning
 
-Subsequent runs append new stories to the same file under appropriate feature sections and bump the version.
+Subsequent runs append new stories to the same file under appropriate feature sections and bump the version. The skill also supports modifying and removing existing stories with appropriate version management.
 
 ### `needs-spec`
 
@@ -138,6 +142,46 @@ The skill will:
 2. **Existing projects:** Analyze the codebase and reconcile with the design document
 3. Write `docs/architecture.adoc` as a living snapshot of the current system
 
+### `needs-tasks`
+
+Create phased implementation task lists from design documents. The agent loads this skill when asked to break down the design into work items, plan the implementation, or prepare for coding.
+
+```
+Create implementation tasks from the design
+```
+
+```
+Break down the design into a task list
+```
+
+The skill will:
+1. Read the design document, user stories, and specs
+2. Decompose the design into discrete coding units
+3. Organize tasks into sequential phases (Foundation, Core Logic, Interface Layer, Integration, Polish)
+4. Mark each task as `[parallel]` or `[sequential]` within its phase
+5. Write `docs/tasks/tasks.adoc` with full traceability back to specs and stories
+
+### `needs-implementation`
+
+Implement code from the phased task list. The agent loads this skill when asked to start coding, implement the tasks, or build the feature.
+
+```
+Implement the tasks
+```
+
+```
+Start coding from the task list
+```
+
+The skill will:
+1. Read the task list and design document
+2. Build a todo list for the current phase
+3. Implement each task following the design document for architectural guidance
+4. Verify the phase (build, lint, typecheck, test)
+5. Commit with a descriptive message
+6. Ask the user whether to continue to the next phase or stop
+7. When all phases are complete, mark the design and tasks as `Implemented`
+
 ### `ears-requirements`
 
 Write and review requirements using the EARS methodology. The agent loads this skill when writing, translating, or reviewing requirements in EARS format. Used as a prerequisite by both `needs-user-story` and `needs-spec`.
@@ -154,7 +198,7 @@ Each acceptance criterion uses one of the EARS sentence types:
 | Unwanted behavior | If \<trigger\>, then the \<system\> shall \<response\>. | Errors and edge cases |
 | Optional | Where \<feature\>, the \<system\> shall \<response\>. | Feature-dependent behavior |
 
-See the [EARS quick reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) for the full guide.
+See the [EARS quick reference](skills/ears-requirements/reference/ears-reference.adoc) for the full guide.
 
 ## Example: User Stories
 
@@ -239,4 +283,4 @@ Verification:: Submit valid registration data and confirm that a verification em
 
 ## Reference
 
-- [EARS Quick Reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) -- Full guide to the EARS requirement syntax standard
+- [EARS Quick Reference](skills/ears-requirements/reference/ears-reference.adoc) -- Full guide to the EARS requirement syntax standard
