@@ -25,7 +25,7 @@ Every requirement must use one of the following sentence types. Choose the type 
 
 Requirements that apply at all times without a specific trigger or state.
 
-**Template:** The `<system>` shall `<response>`.
+**Template:** The `<system name>` shall `<system response>`.
 
 **Example:** The API shall return responses in JSON format.
 
@@ -33,7 +33,7 @@ Requirements that apply at all times without a specific trigger or state.
 
 Requirements triggered by a specific event, optionally with preconditions.
 
-**Template:** When `<optional preconditions>` `<trigger>`, the `<system>` shall `<response>`.
+**Template:** When `<optional preconditions>` `<trigger>`, the `<system>` shall `<system response>`.
 
 **Examples:**
 
@@ -44,7 +44,7 @@ Requirements triggered by a specific event, optionally with preconditions.
 
 Requirements that apply while the system is in a particular state.
 
-**Template:** While `<in state>`, the `<system>` shall `<response>`.
+**Template:** While `<in a state>`, the `<system>` shall `<system response>`.
 
 For readability, you may use "During" instead of "While" with the same meaning.
 
@@ -54,7 +54,7 @@ For readability, you may use "During" instead of "While" with the same meaning.
 
 Requirements that handle error conditions or undesirable inputs.
 
-**Template:** If `<optional preconditions>` `<trigger>`, then the `<system>` shall `<response>`.
+**Template:** If `<optional preconditions>` `<trigger>`, then the `<system>` shall `<system response>`.
 
 **Examples:**
 
@@ -65,7 +65,7 @@ Requirements that handle error conditions or undesirable inputs.
 
 Requirements that only apply when a specific feature is present.
 
-**Template:** Where `<feature is included>`, the `<system>` shall `<response>`.
+**Template:** Where `<feature is included>`, the `<system>` shall `<system response>`.
 
 **Examples:**
 
@@ -78,8 +78,8 @@ Requirements that combine a precondition (state/condition/feature) with an event
 
 **Templates:**
 
-- While `<state>`, when `<trigger>`, the `<system>` shall `<response>`.
-- Where `<feature is included>`, while `<state>`, when `<trigger>`, the `<system>` shall `<response>`.
+- While `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
+- Where `<feature is included>`, while `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
 
 You can also nest Where/While/When context inside If ... then statements for unwanted behaviour.
 
@@ -144,12 +144,12 @@ Every requirement you write or review must satisfy all of these:
 
 ## Quick Templates (Copy/Paste)
 
-- Ubiquitous: The <system> shall <response>.
-- Event-driven: When <optional preconditions> <trigger>, the <system> shall <response>.
-- State-driven: While <state>, the <system> shall <response>.
-- Optional feature: Where <feature is included>, the <system> shall <response>.
-- Unwanted behavior: If <optional preconditions> <trigger>, then the <system> shall <response>.
-- Complex: Where <feature is included>, while <state>, when <trigger>, the <system> shall <response>.
+- Ubiquitous: The <system name> shall <system response>.
+- Event-driven: When <optional preconditions> <trigger>, the <system> shall <system response>.
+- State-driven: While <in a state>, the <system> shall <system response>.
+- Optional feature: Where <feature is included>, the <system> shall <system response>.
+- Unwanted behavior: If <optional preconditions> <trigger>, then the <system> shall <system response>.
+- Complex: Where <feature is included>, while <state>, when <trigger>, the <system> shall <system response>.
 
 ## Reference Material
 
