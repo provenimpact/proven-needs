@@ -33,6 +33,8 @@ Requirements that apply while the system is in a particular state.
 
 **Template:** While `<in a state>`, the `<system>` shall `<system response>`.
 
+For readability, you may use "During" instead of "While" with the same meaning.
+
 **Example:** While the kitchen system is in maintenance mode, the kitchen system shall reject all input.
 
 ### Unwanted Behavior
@@ -47,9 +49,18 @@ Requirements that handle error conditions or undesirable inputs.
 
 Requirements that only apply when a specific feature is present.
 
-**Template:** Where `<feature>`, the `<system>` shall `<system response>`.
+**Template:** Where `<feature is included>`, the `<system>` shall `<system response>`.
 
 **Example:** Where the kitchen system has a food freshness sensor, the kitchen system shall detect rotten foodstuffs.
+
+### Complex (combined)
+
+Requirements that combine a precondition (state/condition/feature) with an event trigger.
+
+**Templates:**
+
+- While `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
+- Where `<feature is included>`, while `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
 
 ### Combined Sentences
 
@@ -65,6 +76,7 @@ Follow these steps when writing or translating requirements:
 2. **Identify compound requirements** -- determine whether the requirement needs to be split into multiple atomic requirements.
 3. **Identify the acting system, person, or process.**
 4. **Analyse the needed sentence type(s)** -- select from Ubiquitous, Event-driven, State-driven, Unwanted Behavior, or Optional.
+   Use Complex (combined) when you need both preconditions (Where/While) and a trigger (When), including within If-then statements for unwanted behavior.
 5. **Identify possible missing requirements** -- e.g. 2 states and 2 events usually produce 4 requirements. Check all combinations.
 6. **Analyse the translated requirements** for ambiguity, conflict, and repetition.
 7. **Review requirements** if possible. Iterate as required.
@@ -91,7 +103,9 @@ Every requirement you write or review must satisfy all of these:
 
 ## Reference Material
 
-The full EARS quick reference document is available at `reference/ears-reference.adoc` within this skill's directory. Consult it for additional detail on templates, combined sentences, troubleshooting, and good practices.
+The full EARS quick reference document is available at `reference/ears-reference.adoc` within this skill's directory. Consult it for additional detail on patterns, checklists, troubleshooting, and good practices.
+
+For the original publication, see https://ieeexplore.ieee.org/document/5328509
 
 ## When to use me
 
