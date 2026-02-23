@@ -63,7 +63,7 @@ Organize stories under feature headings using this AsciiDoc template:
 
 == [Feature Name]
 
-=== Story N: [Title]
+=== US-NNN: [Title]
 As a [role],
 I want [goal],
 so that [benefit].
@@ -86,7 +86,7 @@ Acceptance Criteria:
 
 1. Check if the feature section already exists. If so, append under it. If not, create a new feature section.
 2. Before appending, check for stories with substantially similar scope under the same feature. If a potential duplicate is found, present both to the user and ask whether to merge, replace, or keep both.
-3. Number new stories sequentially after the highest existing story number in the file.
+3. Assign the next sequential `US-NNN` ID after the highest existing ID in the file (zero-padded to 3 digits).
 4. Bump the version (MINOR -- new content added).
 
 #### Modifying Existing Stories

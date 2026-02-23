@@ -134,7 +134,7 @@ When implementing directly from the design document without a task list:
 
 3. **Verify after each story:** Run the same verification steps as phase verification (build, lint, typecheck, test).
 
-4. **Commit after each story** with a message following the pattern: `feat(<story-scope>): implement story N -- <Story Title>`.
+4. **Commit after each story** with a message following the pattern: `feat(<story-scope>): implement US-NNN -- <Story Title>`.
 
 5. **Ask to continue:** After each story, ask the user whether to proceed to the next story or stop.
 

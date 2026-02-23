@@ -88,7 +88,7 @@ Requirements MUST describe:
 - Timing and performance from the user's perspective
 - Error messages and feedback presented to the user
 
-**Multi-source requirements:** A single requirement may be derived from criteria across multiple stories. Use comma-separated sources: `Source:: Story 1: Criterion 3, Story 2: Criterion 1`.
+**Multi-source requirements:** A single requirement may be derived from criteria across multiple stories. Use comma-separated sources: `Source:: US-001: Criterion 3, US-002: Criterion 1`.
 
 ### 5. Write Specification Files
 
@@ -116,11 +116,11 @@ Create `docs/specs/` with one file per category plus an index.
 
 | AUTH-001
 | Registration form with email and password
-| Story 1: User Registration, Criterion 1
+| US-001: User Registration, Criterion 1
 
 | AUTH-002
 | Email verification on registration
-| Story 1: Criterion 3, Story 3: Criterion 1
+| US-001: Criterion 3, US-003: Criterion 1
 |===
 ```
 
@@ -136,14 +136,14 @@ Create `docs/specs/` with one file per category plus an index.
 The system shall display a registration form with email and password fields.
 
 Type:: Ubiquitous
-Source:: Story 1: User Registration, Criterion 1
+Source:: US-001: User Registration, Criterion 1
 Verification:: Open the registration page. Confirm that email and password input fields are displayed.
 
 == AUTH-002
 When the user submits the registration form with valid data, the system shall send an email verification link.
 
 Type:: Event-driven
-Source:: Story 1: User Registration, Criterion 3
+Source:: US-001: User Registration, Criterion 3
 Verification:: Submit valid registration data and confirm that a verification email is received at the provided address.
 ```
 
@@ -200,7 +200,7 @@ Modified:
   - AUTH-002: [old text] -> [new text]
 
 Removed:
-  - AUTH-005: [reason - source Story 3 removed]
+  - AUTH-005: [reason - source US-003 removed]
 
 Categories:
   - Propose adding "Notifications" (NOTIF) -- 3 new requirements

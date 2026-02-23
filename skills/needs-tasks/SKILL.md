@@ -158,8 +158,8 @@ Description:: <What to implement and key details>
 |===
 | Story | Spec IDs | Tasks
 
-| Story 1: <title> | AUTH-001, AUTH-002 | TASK-001, TASK-005
-| Story 2: <title> | UI-001, UI-003 | TASK-002, TASK-006
+| US-001: <title> | AUTH-001, AUTH-002 | TASK-001, TASK-005
+| US-002: <title> | UI-001, UI-003 | TASK-002, TASK-006
 |===
 ```
 

@@ -95,7 +95,7 @@ Stripe:: Payment processing via Stripe SDK. Server-side: create PaymentIntents. 
 
 == Story Resolution
 
-=== Story 1: View Product Catalog
+=== US-001: View Product Catalog
 
 Components:: Product Catalog Page, ProductCard, GET /api/products
 Criteria::
@@ -104,7 +104,7 @@ Criteria::
 * Filter by category -> GET /api/products supports `?category=` parameter, Product Catalog Page renders category filter (SRCH-001)
 * Sort by selected attribute -> GET /api/products supports `?sort=` parameter, Product Catalog Page renders sort control (SRCH-002)
 
-=== Story 2: Search Products
+=== US-002: Search Products
 
 Components:: SearchBar, Product Catalog Page, GET /api/products
 Criteria::
@@ -113,7 +113,7 @@ Criteria::
 * Show "no results" message -> Frontend displays empty state when API returns zero products (ERR-001)
 * Highlight matching terms -> Frontend highlights search terms in ProductCard text (SRCH-003)
 
-=== Story 3: Add to Cart
+=== US-003: Add to Cart
 
 Components:: ProductCard, CartContext, CartIcon, POST /api/cart/items
 Criteria::
@@ -122,7 +122,7 @@ Criteria::
 * Show success confirmation -> Frontend displays success message after add (UI-005)
 * Increment quantity for duplicate -> POST /api/cart/items increments quantity if product already in cart (CART-002)
 
-=== Story 4: View Cart
+=== US-004: View Cart
 
 Components:: Cart Page, CartContext, PATCH/DELETE /api/cart/items
 Criteria::
@@ -131,7 +131,7 @@ Criteria::
 * Update total on quantity change -> PATCH /api/cart/items/:id, CartContext updates, Cart Page re-renders total (CART-003)
 * Remove item and update total -> DELETE /api/cart/items/:id, CartContext updates, Cart Page removes item and re-renders total (CART-004)
 
-=== Story 5: Checkout Process
+=== US-005: Checkout Process
 
 Components:: Checkout Page, POST /api/checkout, Stripe integration, email service
 Criteria::
