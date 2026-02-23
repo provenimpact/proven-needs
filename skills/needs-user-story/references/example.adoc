@@ -13,7 +13,7 @@
 
 === Product Browsing
 
-==== Story 1: View Product Catalog
+==== US-001: View Product Catalog
 As a shopper,
 I want to browse available products,
 so that I can find items I want to purchase.
@@ -25,7 +25,7 @@ Acceptance Criteria:
 * [ ] When the user selects a category filter, the system shall display only products in that category.
 * [ ] When the user selects a sort option, the system shall order products by the selected attribute.
 
-==== Story 2: Search Products
+==== US-002: Search Products
 As a shopper,
 I want to search for products by keyword,
 so that I can quickly find specific items.
@@ -39,7 +39,7 @@ Acceptance Criteria:
 
 === Shopping Cart
 
-==== Story 3: Add to Cart
+==== US-003: Add to Cart
 As a shopper,
 I want to add products to my cart,
 so that I can purchase multiple items at once.
@@ -51,7 +51,7 @@ Acceptance Criteria:
 * [ ] When the user adds a product to the cart, the system shall display a success confirmation.
 * [ ] When the user adds a product that is already in the cart, the system shall increment the quantity for that product.
 
-==== Story 4: View Cart
+==== US-004: View Cart
 As a shopper,
 I want to view my cart contents,
 so that I can review items before checkout.
@@ -65,7 +65,7 @@ Acceptance Criteria:
 
 === Checkout
 
-==== Story 5: Checkout Process
+==== US-005: Checkout Process
 As a shopper,
 I want to complete my purchase,
 so that I can receive my ordered items.

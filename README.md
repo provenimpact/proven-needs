@@ -216,7 +216,7 @@ Given: "user login and registration system"
 
 == Authentication
 
-=== Story 1: User Registration
+=== US-001: User Registration
 As a new user,
 I want to create an account with email and password,
 so that I can access the application.
@@ -228,7 +228,7 @@ Acceptance Criteria:
 * [ ] If the user submits an email that is already registered, then the system shall display an error message.
 * [ ] When registration is successful, the system shall redirect to the login page or dashboard.
 
-=== Story 2: User Login
+=== US-002: User Login
 As a registered user,
 I want to log in with email and password,
 so that I can access my account.
@@ -240,7 +240,7 @@ Acceptance Criteria:
 * [ ] The system shall provide a "remember me" option for persistent sessions.
 * [ ] The system shall provide a "forgot password" link on the login form.
 
-=== Story 3: Password Reset
+=== US-003: Password Reset
 As a user who forgot their password,
 I want to reset my password via email,
 so that I can regain access to my account.
@@ -267,21 +267,21 @@ Given the user stories above, `needs-spec` produces categorized specifications:
 The system shall display a registration form with email and password fields.
 
 Type:: Ubiquitous
-Source:: Story 1: User Registration, Criterion 1
+Source:: US-001: User Registration, Criterion 1
 Verification:: Open the registration page. Confirm that email and password input fields are displayed.
 
 == AUTH-002
 The system shall enforce minimum password security requirements.
 
 Type:: Ubiquitous
-Source:: Story 1: User Registration, Criterion 2
+Source:: US-001: User Registration, Criterion 2
 Verification:: Attempt to register with passwords of varying strength. Confirm that weak passwords are rejected with a descriptive message.
 
 == AUTH-003
 When the user submits the registration form with valid data, the system shall send an email verification link.
 
 Type:: Event-driven
-Source:: Story 1: User Registration, Criterion 3
+Source:: US-001: User Registration, Criterion 3
 Verification:: Submit valid registration data and confirm that a verification email is received at the provided address.
 ```
 

@@ -177,21 +177,21 @@ Description:: Create the Next.js project with TypeScript enabled...
 * [x] TASK-002: Create Product entity and migration [parallel]
 +
 Components:: Database, Product model
-Stories:: Story 1, Story 2
+Stories:: US-001, US-002
 Specs:: UI-002
 Description:: Create the Product table with fields...
 
 * [x] TASK-003: Create Cart and CartItem entities and migrations [parallel]
 +
 Components:: Database, Cart model, CartItem model
-Stories:: Story 3, Story 4
+Stories:: US-003, US-004
 Specs:: CART-001, CART-004
 Description:: Create Cart table and CartItem table...
 
 * [x] TASK-004: Create Order and OrderItem entities and migrations [parallel]
 +
 Components:: Database, Order model, OrderItem model
-Stories:: Story 5
+Stories:: US-005
 Specs:: CHK-001
 Description:: Create Order table and OrderItem table...
 

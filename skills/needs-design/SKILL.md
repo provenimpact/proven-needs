@@ -63,8 +63,8 @@ When the user chooses to incrementally update (rather than redesign from scratch
 Analyze all user stories and specs (if available) to identify:
 
 1. **Technology decisions needed** -- for each story, what technology choices are required to solve it? Cross-reference against existing ADRs. Examples:
-   - "Story 3 requires persistent storage -- which database?" (if no ADR exists)
-   - "Story 5 requires real-time updates -- WebSocket or SSE?" (if no ADR exists)
+   - "US-003 requires persistent storage -- which database?" (if no ADR exists)
+   - "US-005 requires real-time updates -- WebSocket or SSE?" (if no ADR exists)
 
 2. **Unknowns and dependencies** -- external systems, third-party services, constraints that need clarification.
 
@@ -167,14 +167,14 @@ Create `docs/design/` with the following files:
 
 == Story Resolution
 
-=== Story 1: <Title>
+=== US-001: <Title>
 
 Components:: <which components are involved>
 Criteria::
 * <acceptance criterion> -> <how the design meets it> (SPEC-ID)
 * ...
 
-=== Story 2: <Title>
+=== US-002: <Title>
 
 Components:: <which components are involved>
 Criteria::

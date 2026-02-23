@@ -6,7 +6,7 @@
 
 === Input
 
-User stories from `user-stories.adoc` (version 1.0.0) for an e-commerce site with Product Browsing (Stories 1-2), Shopping Cart (Stories 3-4), and Checkout (Story 5).
+User stories from `user-stories.adoc` (version 1.0.0) for an e-commerce site with Product Browsing (US-001, US-002), Shopping Cart (US-003, US-004), and Checkout (US-005).
 
 === Proposed Categories
 
@@ -48,87 +48,87 @@ Add, remove, rename, or merge categories?
 
 | UI-001
 | Display products in grid or list format
-| Story 1: View Product Catalog, Criterion 1
+| US-001: View Product Catalog, Criterion 1
 
 | UI-002
 | Show name, price, and image per product
-| Story 1: View Product Catalog, Criterion 2
+| US-001: View Product Catalog, Criterion 2
 
 | UI-003
 | Display add-to-cart button on each product
-| Story 3: Add to Cart, Criterion 1
+| US-003: Add to Cart, Criterion 1
 
 | UI-004
 | Display cart count in the header
-| Story 3: Add to Cart, Criterion 2
+| US-003: Add to Cart, Criterion 2
 
 | UI-005
 | Display success confirmation on add to cart
-| Story 3: Add to Cart, Criterion 3
+| US-003: Add to Cart, Criterion 3
 
 | UI-006
 | Display all cart items with quantities
-| Story 4: View Cart, Criterion 1
+| US-004: View Cart, Criterion 1
 
 | UI-007
 | Display item prices and cart total
-| Story 4: View Cart, Criterion 2
+| US-004: View Cart, Criterion 2
 
 | SRCH-001
 | Filter products by category
-| Story 1: View Product Catalog, Criterion 3
+| US-001: View Product Catalog, Criterion 3
 
 | SRCH-002
 | Sort products by selected attribute
-| Story 1: View Product Catalog, Criterion 4
+| US-001: View Product Catalog, Criterion 4
 
 | SRCH-003
 | Search products by keyword
-| Story 2: Search Products, Criterion 1, Criterion 2
+| US-002: Search Products, Criterion 1, Criterion 2
 
 | CART-001
 | Update cart count when product is added
-| Story 3: Add to Cart, Criterion 2
+| US-003: Add to Cart, Criterion 2
 
 | CART-002
 | Increment quantity for duplicate products
-| Story 3: Add to Cart, Criterion 4
+| US-003: Add to Cart, Criterion 4
 
 | CART-003
 | Update subtotal and total on quantity change
-| Story 4: View Cart, Criterion 3
+| US-004: View Cart, Criterion 3
 
 | CART-004
 | Remove item and update total on removal
-| Story 4: View Cart, Criterion 4
+| US-004: View Cart, Criterion 4
 
 | CHK-001
 | Display confirmation page on order completion
-| Story 5: Checkout Process, Criterion 4
+| US-005: Checkout Process, Criterion 4
 
 | CHK-002
 | Provide shipping address form
-| Story 5: Checkout Process, Criterion 1
+| US-005: Checkout Process, Criterion 1
 
 | CHK-003
 | Allow payment method selection
-| Story 5: Checkout Process, Criterion 2
+| US-005: Checkout Process, Criterion 2
 
 | CHK-004
 | Display order summary before confirmation
-| Story 5: Checkout Process, Criterion 3
+| US-005: Checkout Process, Criterion 3
 
 | ERR-001
 | Display empty-state message for no search results
-| Story 2: Search Products, Criterion 3
+| US-002: Search Products, Criterion 3
 
 | ERR-002
 | Display error and allow retry on payment failure
-| Story 5: Checkout Process, Criterion 6
+| US-005: Checkout Process, Criterion 6
 
 | NOTIF-001
 | Send order confirmation email
-| Story 5: Checkout Process, Criterion 5
+| US-005: Checkout Process, Criterion 5
 |===
 ```
 
@@ -144,21 +144,21 @@ Add, remove, rename, or merge categories?
 The system shall display products in a grid or list format.
 
 Type:: Ubiquitous
-Source:: Story 1: View Product Catalog, Criterion 1
+Source:: US-001: View Product Catalog, Criterion 1
 Verification:: Navigate to the product listing page. Confirm that products are displayed in a grid or list layout.
 
 == UI-002
 The system shall show the name, price, and image for each product in the listing.
 
 Type:: Ubiquitous
-Source:: Story 1: View Product Catalog, Criterion 2
+Source:: US-001: View Product Catalog, Criterion 2
 Verification:: View the product listing. Confirm each product displays its name, price, and image.
 
 == UI-003
 The system shall display an add-to-cart button on each product.
 
 Type:: Ubiquitous
-Source:: Story 3: Add to Cart, Criterion 1
+Source:: US-003: Add to Cart, Criterion 1
 Verification:: View any product in the listing. Confirm an add-to-cart button is visible.
 ```
 
@@ -174,14 +174,14 @@ Verification:: View any product in the listing. Confirm an add-to-cart button is
 When the user submits a search query that matches no products, the system shall display a helpful empty-state message.
 
 Type:: Event-driven
-Source:: Story 2: Search Products, Criterion 3
+Source:: US-002: Search Products, Criterion 3
 Verification:: Search for a term that matches no products. Confirm that a message is displayed indicating no results were found.
 
 == ERR-002
 If payment processing fails, then the system shall display an error message and allow the user to retry.
 
 Type:: Unwanted behavior
-Source:: Story 5: Checkout Process, Criterion 6
+Source:: US-005: Checkout Process, Criterion 6
 Verification:: Attempt to complete checkout with payment details that cause a failure. Confirm that an error message is displayed and a retry option is available.
 ```
 
@@ -190,9 +190,9 @@ Verification:: Attempt to complete checkout with payment details that cause a fa
 === Change
 
 User stories updated from version 1.0.0 to 1.1.0. Changes:
-- *New* Story 6: Order Tracking added under Checkout feature
-- *Modified* Story 2, Criterion 2: "display matching products" changed to "display matching products sorted by relevance"
-- *Removed* Story 1, Criterion 4: sort option criterion removed
+- *New* US-006: Order Tracking added under Checkout feature
+- *Modified* US-002, Criterion 2: "display matching products" changed to "display matching products sorted by relevance"
+- *Removed* US-001, Criterion 4: sort option criterion removed
 
 === Change Report
 
@@ -208,7 +208,7 @@ Modified:
   - SRCH-003: Added "sorted by relevance" to search results display
 
 Removed:
-  - SRCH-002: Source criterion (Story 1, Criterion 4: sort option) removed
+  - SRCH-002: Source criterion (US-001, Criterion 4: sort option) removed
 
 Categories:
   - Propose adding "Order Management" (ORD) -- 2 new requirements
