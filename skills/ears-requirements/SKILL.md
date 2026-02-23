@@ -91,6 +91,8 @@ Sentence types can be combined for complex requirements. Use the keywords in thi
 
 - While the user is unauthenticated, when the user requests the account page, the system shall redirect to the login page.
 - Where the cart is empty, when the user selects Checkout, the system shall display a message that checkout is unavailable.
+- When a webhook delivery fails, if the retry count exceeds 5, then the system shall mark the endpoint as inactive.
+- Where premium billing is enabled, while the subscription is active, when the billing period ends, the system shall generate an invoice.
 
 ## How to Apply EARS
 
@@ -105,6 +107,39 @@ Follow these steps when writing or translating requirements:
 6. **Analyse the translated requirements** for ambiguity, conflict, and repetition.
 7. **Review requirements** if possible. Iterate as required.
 
+## Checking for Completeness
+
+After writing requirements, use the following techniques to find gaps.
+
+### Truth Tables
+
+When a system function operates across multiple states or modes, build a truth table listing every combination. Each cell represents a potential requirement. For example, a function that behaves differently in 3 modes and 2 operational states produces 6 combinations to consider. Missing cells often reveal missing requirements.
+
+### Function-Level Review
+
+For each identified system function, ask these questions:
+
+1. Is there a requirement for the function's normal operation? (Typically ubiquitous.)
+2. Does the function have accuracy, timing, or sequencing constraints?
+3. Under what conditions does the function activate? (Event-driven or state-driven requirements.)
+4. Are there availability or reliability requirements for this function?
+5. What should happen if the function fails or receives invalid input? (Unwanted behavior requirements.)
+
+This systematic review helps surface requirements that are easy to overlook.
+
+### Requirement Pairing
+
+Requirements often come in natural pairs. When you write a requirement for one side, check whether the counterpart is needed:
+
+- **Wanted / Unwanted:** Normal behavior paired with error handling.
+- **Primary / Backup:** Main operating mode paired with fallback mode.
+- **Enable / Disable:** Activating a feature paired with deactivating it.
+- **Start / Stop:** Initiating a process paired with terminating it.
+
+### Traceability Through Structure
+
+Each clause in a combined EARS requirement (Where, While, When) implies a sub-function that may need its own lower-level requirement. When you write a combined requirement, check whether each clause maps to a traceable child requirement. This turns the structure of the requirement itself into a traceability aid.
+
 ## Choosing a Pattern
 
 - Always true -> Ubiquitous
@@ -113,6 +148,17 @@ Follow these steps when writing or translating requirements:
 - Depends on a feature -> Optional feature
 - Error/invalid/failure handling -> Unwanted behavior
 - Needs both preconditions and a trigger -> Complex
+
+### Ubiquitous vs. Event-Driven
+
+When a behavior could be either ubiquitous (always active) or event-driven (only on change), consider the system's criticality and operational context. A monitoring system that must always show the latest value needs a ubiquitous requirement (continuous updates), while a notification system that only acts when something changes needs an event-driven requirement. If the distinction is unclear, ask the stakeholder whether the system must continuously demonstrate the behavior or only respond when triggered.
+
+### Passive vs. Active Response
+
+Some requirements demand that a system tolerate or be immune to an external condition without actively responding (passive). Others require the system to detect the condition and take explicit action (active). When you encounter a requirement about tolerating or withstanding something, decide which applies:
+
+- **Passive:** The system shall be immune to `<condition>`. (No active response needed; the design inherently handles it.)
+- **Active:** When `<condition is detected>`, the system shall `<response>`. (The system must detect and react.)
 
 ## Characteristics of a Good Requirement
 
@@ -125,6 +171,10 @@ Every requirement you write or review must satisfy all of these:
 | **Consistent** | Does not conflict with other requirements |
 | **Verifiable** | It is possible to check that the system meets the requirement |
 | **Complete** | Not lacking relevant information |
+| **Atomic** | Expresses a single behavior; not a compound statement |
+| **Implementation-free** | States *what* the system does, not *how* it is built |
+| **Concise** | Uses no more words than necessary to convey the meaning |
+| **Non-duplicated** | Does not restate the same intent as another requirement |
 
 ## Troubleshooting
 
@@ -133,6 +183,10 @@ Every requirement you write or review must satisfy all of these:
 - **No system response:** Common with nonfunctional requirements. Try "shall be immune" or similar workaround.
 - **Need "shall not":** EARS deliberately avoids "shall not". Try "shall be immune" or similar. Use "shall not" only as a last resort.
 - **Too many atomic requirements:** Deep technical requirements are not well suited to EARS. Consider using a list as accompaniment or another format if EARS seems inappropriate.
+- **Ubiquitous or event-driven?** If unclear whether a behavior is always-on or only triggered by change, ask the stakeholder. See "Ubiquitous vs. Event-Driven" under Choosing a Pattern.
+- **Passive or active tolerance?** When a requirement involves withstanding or being immune to a condition, decide whether the design is inherently tolerant (passive) or must detect and respond (active). See "Passive vs. Active Response" under Choosing a Pattern.
+- **Multiple actors for the same trigger:** When several actors could initiate the same action, write a separate requirement per actor or explicitly list the authorized actors. Applying EARS preconditions forces you to name the actor, which surfaces authorization conflicts early.
+- **Recovery from unwanted states:** EARS provides the If-Then pattern for unwanted *behaviors* (events), but does not have a dedicated pattern for recovery from unwanted *states* (e.g., the system is already in an error state). Model these as state-driven requirements: "While `<in unwanted state>`, the system shall `<recovery response>`."
 
 ## Quick Checklist
 
@@ -141,6 +195,10 @@ Every requirement you write or review must satisfy all of these:
 - Conditions are specific (state names, thresholds)
 - Response is observable/verifiable
 - Avoids vague terms ("fast", "user-friendly", "appropriate")
+- Atomic (one behavior per requirement; no "and/or" chains)
+- States *what*, not *how* (no implementation detail)
+- Paired requirements considered (error path, backup mode, enable/disable)
+- Completeness checked (truth table or function-level review for gaps)
 
 ## Quick Templates (Copy/Paste)
 
@@ -151,11 +209,21 @@ Every requirement you write or review must satisfy all of these:
 - Unwanted behavior: If <optional preconditions> <trigger>, then the <system> shall <system response>.
 - Complex: Where <feature is included>, while <state>, when <trigger>, the <system> shall <system response>.
 
+## Attribution
+
+EARS was originally described in:
+
+- Mavin, A., Wilkinson, P., Harwood, A., and Novak, M., "Easy Approach to Requirements Syntax (EARS)", Proceedings of the 17th IEEE International Requirements Engineering Conference (RE), 2009. Link: https://ieeexplore.ieee.org/document/5328509
+
+The completeness techniques, lessons on requirement pairing, passive/active distinctions, and additional troubleshooting guidance are informed by the follow-up study:
+
+- Mavin, A. and Wilkinson, P., "Big EARS (The Return of Easy Approach to Requirements Syntax)", Proceedings of the 18th IEEE International Requirements Engineering Conference (RE), 2010.
+
+The templates, methodology, and guidance in this skill are derived from these works. All content is written in the authors' own words for this skill; no verbatim text from the papers is reproduced.
+
 ## Reference Material
 
 The full EARS quick reference document is available at `reference/ears-reference.adoc` within this skill's directory. Consult it for additional detail on patterns, checklists, troubleshooting, and good practices.
-
-For the original publication, see https://ieeexplore.ieee.org/document/5328509
 
 ## When to use me
 

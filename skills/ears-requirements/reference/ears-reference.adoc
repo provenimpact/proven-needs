@@ -109,6 +109,37 @@ You can also nest *Where/While/When* context inside *If* ... *then* statements f
 
  While the user is unauthenticated, when the user requests the account page, the system shall redirect to the login page.
  Where the cart is empty, when the user selects Checkout, the system shall display a message that checkout is unavailable.
+ When a webhook delivery fails, if the retry count exceeds 5, then the system shall mark the endpoint as inactive.
+ Where premium billing is enabled, while the subscription is active, when the billing period ends, the system shall generate an invoice.
+
+== Checking for Completeness
+
+=== Truth Tables
+
+When a function operates across multiple states or modes, build a truth table of every combination. Each cell is a potential requirement. Missing cells often reveal missing requirements.
+
+=== Function-Level Review
+
+For each system function, ask:
+
+. Is there a requirement for normal operation? (Ubiquitous)
+. Does it have accuracy, timing, or sequencing constraints?
+. Under what conditions does it activate? (Event-driven or state-driven)
+. Are there availability or reliability requirements?
+. What happens on failure or invalid input? (Unwanted behavior)
+
+=== Requirement Pairing
+
+Requirements often come in pairs. When writing one side, check the other:
+
+* Wanted / Unwanted (normal vs. error handling)
+* Primary / Backup (main vs. fallback mode)
+* Enable / Disable (activate vs. deactivate)
+* Start / Stop (initiate vs. terminate)
+
+=== Traceability Through Structure
+
+Each clause in a combined requirement (Where, While, When) implies a sub-function that may need its own lower-level requirement. Use the structure of combined requirements as a traceability aid.
 
 == Choosing a Pattern
 
@@ -118,6 +149,17 @@ You can also nest *Where/While/When* context inside *If* ... *then* statements f
 * Depends on a feature -> Optional feature
 * Error/invalid/failure handling -> Unwanted behavior
 * Needs both preconditions and a trigger -> Complex
+
+=== Ubiquitous vs. Event-Driven
+
+If unclear whether a behavior is always-on or only triggered by change, consider the criticality and operational context. Ask the stakeholder whether the system must continuously demonstrate the behavior or only respond when triggered.
+
+=== Passive vs. Active Response
+
+Some requirements demand tolerance without active response (passive), others require detection and action (active):
+
+* *Passive:* The system shall be immune to <condition>.
+* *Active:* When <condition is detected>, the system shall <response>.
 
 == Steps to Apply EARS
 
@@ -135,6 +177,10 @@ You can also nest *Where/While/When* context inside *If* ... *then* statements f
 * Conditions are specific (state names, thresholds)
 * Response is observable/verifiable
 * Avoids vague terms ("fast", "user-friendly", "appropriate")
+* Atomic (one behavior per requirement; no "and/or" chains)
+* States _what_, not _how_ (no implementation detail)
+* Paired requirements considered (error path, backup mode, enable/disable)
+* Completeness checked (truth table or function-level review for gaps)
 
 == Troubleshooting
 
@@ -142,6 +188,10 @@ You can also nest *Where/While/When* context inside *If* ... *then* statements f
 * Cannot identify the actor: common for nonfunctional constraints; express as "The system shall be ...".
 * "Shall not": prefer positive phrasing (e.g., "shall reject", "shall prevent", "shall be immune"); use "shall not" only as a last resort.
 * Too many atomic requirements: deep technical constraints may need a different format or an accompanying list.
+* Ubiquitous or event-driven?: ask the stakeholder. See "Ubiquitous vs. Event-Driven" above.
+* Passive or active?: decide whether the design is inherently tolerant or must detect and respond. See "Passive vs. Active Response" above.
+* Multiple actors for the same trigger: write separate requirements per actor or explicitly list authorized actors. EARS preconditions force you to name the actor, which surfaces authorization conflicts early.
+* Recovery from unwanted states: EARS has If-Then for unwanted _behaviors_ (events), but no dedicated pattern for unwanted _states_. Model these as state-driven: "While <in unwanted state>, the system shall <recovery response>."
 
 == Quick Templates (Copy/Paste)
 
@@ -154,6 +204,12 @@ You can also nest *Where/While/When* context inside *If* ... *then* statements f
 
 == Attribution
 
-EARS was originally described in Mavin et al., "Easy Approach to Requirements Syntax (EARS)", IEEE International Requirements Engineering Conference (RE), 2009.
+EARS was originally described in:
 
-Link: https://ieeexplore.ieee.org/document/5328509
+* Mavin, A., Wilkinson, P., Harwood, A., and Novak, M., "Easy Approach to Requirements Syntax (EARS)", Proceedings of the 17th IEEE International Requirements Engineering Conference (RE), 2009. Link: https://ieeexplore.ieee.org/document/5328509
+
+Completeness techniques, lessons on requirement pairing, passive/active distinctions, and additional troubleshooting guidance are informed by:
+
+* Mavin, A. and Wilkinson, P., "Big EARS (The Return of Easy Approach to Requirements Syntax)", Proceedings of the 18th IEEE International Requirements Engineering Conference (RE), 2010.
+
+All content is written in the authors' own words for this skill; no verbatim text from the papers is reproduced.
