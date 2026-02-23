@@ -7,6 +7,16 @@ description: Write and review requirements using the EARS (Easy Approach to Requ
 
 Guide the writing, review, and translation of requirements using the EARS (Easy Approach to Requirements Syntax) methodology.
 
+Use the bundled quick reference for the canonical patterns, rules, and checklists: `reference/ears-reference.adoc`.
+
+## General Rules
+
+- Use: "The <system/component> shall <behavior>".
+- Prefer one primary behavior per requirement; split "and/or" chains.
+- Use observable, verifiable language (formats, limits, timings, state changes).
+- Put conditions in the EARS prefix; keep the "shall" clause focused on the response.
+- Name actors, states, events, and data consistently.
+
 ## EARS Sentence Types
 
 Every requirement must use one of the following sentence types. Choose the type based on the nature of the requirement.
@@ -15,43 +25,52 @@ Every requirement must use one of the following sentence types. Choose the type 
 
 Requirements that apply at all times without a specific trigger or state.
 
-**Template:** The `<system name>` shall `<system response>`.
+**Template:** The `<system>` shall `<response>`.
 
-**Example:** The kitchen system shall have an input hatch.
+**Example:** The API shall return responses in JSON format.
 
 ### Event-driven
 
 Requirements triggered by a specific event, optionally with preconditions.
 
-**Template:** When `<optional preconditions>` `<trigger>`, the `<system>` shall `<system response>`.
+**Template:** When `<optional preconditions>` `<trigger>`, the `<system>` shall `<response>`.
 
-**Example:** When the chef inserts a potato to the input hatch, the kitchen system shall peel the potato.
+**Examples:**
+
+- When the user submits a valid order, the system shall create an order record.
+- When a payment is declined, the system shall notify the user.
 
 ### State-driven
 
 Requirements that apply while the system is in a particular state.
 
-**Template:** While `<in a state>`, the `<system>` shall `<system response>`.
+**Template:** While `<in state>`, the `<system>` shall `<response>`.
 
 For readability, you may use "During" instead of "While" with the same meaning.
 
-**Example:** While the kitchen system is in maintenance mode, the kitchen system shall reject all input.
+**Example:** While in Maintenance Mode, the service shall reject non-admin requests with HTTP 503.
 
-### Unwanted Behavior
+### Unwanted behavior
 
 Requirements that handle error conditions or undesirable inputs.
 
-**Template:** If `<optional preconditions>` `<trigger>`, then the `<system>` shall `<system response>`.
+**Template:** If `<optional preconditions>` `<trigger>`, then the `<system>` shall `<response>`.
 
-**Example:** If a spoon is inserted to the input hatch, then the kitchen system shall eject the spoon.
+**Examples:**
 
-### Optional
+- If the uploaded file exceeds 10 MB, the system shall reject the upload and display an error message.
+- If the database is unavailable, the service shall return HTTP 503 within 2 seconds.
+
+### Optional feature
 
 Requirements that only apply when a specific feature is present.
 
-**Template:** Where `<feature is included>`, the `<system>` shall `<system response>`.
+**Template:** Where `<feature is included>`, the `<system>` shall `<response>`.
 
-**Example:** Where the kitchen system has a food freshness sensor, the kitchen system shall detect rotten foodstuffs.
+**Examples:**
+
+- Where two-factor authentication is enabled, the system shall require a one-time code at login.
+- Where audit logging is enabled, the service shall record an audit entry for each administrative change.
 
 ### Complex (combined)
 
@@ -59,14 +78,19 @@ Requirements that combine a precondition (state/condition/feature) with an event
 
 **Templates:**
 
-- While `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
-- Where `<feature is included>`, while `<state>`, when `<trigger>`, the `<system>` shall `<system response>`.
+- While `<state>`, when `<trigger>`, the `<system>` shall `<response>`.
+- Where `<feature is included>`, while `<state>`, when `<trigger>`, the `<system>` shall `<response>`.
+
+You can also nest Where/While/When context inside If ... then statements for unwanted behaviour.
 
 ### Combined Sentences
 
 Sentence types can be combined for complex requirements. Use the keywords in this order when combining: **Where** ... **While** ... **When** ... / **If** ... **then** ...
 
-**Example:** Where the car has an ABS system, while the car is moving, when the driver applies brake, the ABS system shall detect blocked wheels.
+**Examples:**
+
+- While the user is unauthenticated, when the user requests the account page, the system shall redirect to the login page.
+- Where the cart is empty, when the user selects Checkout, the system shall display a message that checkout is unavailable.
 
 ## How to Apply EARS
 
@@ -75,11 +99,20 @@ Follow these steps when writing or translating requirements:
 1. **Identify** whether you are working with a requirement, or something else (e.g. a note, example, or design decision). Only requirements get EARS treatment.
 2. **Identify compound requirements** -- determine whether the requirement needs to be split into multiple atomic requirements.
 3. **Identify the acting system, person, or process.**
-4. **Analyse the needed sentence type(s)** -- select from Ubiquitous, Event-driven, State-driven, Unwanted Behavior, or Optional.
+4. **Analyse the needed sentence type(s)** -- select from Ubiquitous, Event-driven, State-driven, Unwanted behavior, or Optional feature.
    Use Complex (combined) when you need both preconditions (Where/While) and a trigger (When), including within If-then statements for unwanted behavior.
 5. **Identify possible missing requirements** -- e.g. 2 states and 2 events usually produce 4 requirements. Check all combinations.
 6. **Analyse the translated requirements** for ambiguity, conflict, and repetition.
 7. **Review requirements** if possible. Iterate as required.
+
+## Choosing a Pattern
+
+- Always true -> Ubiquitous
+- Triggered by an event -> Event-driven
+- Depends on a state/mode -> State-driven
+- Depends on a feature -> Optional feature
+- Error/invalid/failure handling -> Unwanted behavior
+- Needs both preconditions and a trigger -> Complex
 
 ## Characteristics of a Good Requirement
 
@@ -100,6 +133,23 @@ Every requirement you write or review must satisfy all of these:
 - **No system response:** Common with nonfunctional requirements. Try "shall be immune" or similar workaround.
 - **Need "shall not":** EARS deliberately avoids "shall not". Try "shall be immune" or similar. Use "shall not" only as a last resort.
 - **Too many atomic requirements:** Deep technical requirements are not well suited to EARS. Consider using a list as accompaniment or another format if EARS seems inappropriate.
+
+## Quick Checklist
+
+- Actor named ("The <system>...")
+- Correct pattern for the trigger/condition
+- Conditions are specific (state names, thresholds)
+- Response is observable/verifiable
+- Avoids vague terms ("fast", "user-friendly", "appropriate")
+
+## Quick Templates (Copy/Paste)
+
+- Ubiquitous: The <system> shall <response>.
+- Event-driven: When <optional preconditions> <trigger>, the <system> shall <response>.
+- State-driven: While <state>, the <system> shall <response>.
+- Optional feature: Where <feature is included>, the <system> shall <response>.
+- Unwanted behavior: If <optional preconditions> <trigger>, then the <system> shall <response>.
+- Complex: Where <feature is included>, while <state>, when <trigger>, the <system> shall <response>.
 
 ## Reference Material
 
