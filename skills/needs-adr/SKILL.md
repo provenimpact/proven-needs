@@ -109,6 +109,23 @@ Create `docs/adrs/NNNN-<kebab-case-title>.adoc`:
 - `Deprecated` -- decision is no longer relevant
 - `Superseded by ADR-NNNN` -- replaced by a newer decision
 
+```mermaid
+stateDiagram-v2
+    [*] --> Proposed : ADR created
+    Proposed --> Accepted : decision confirmed
+    Accepted --> Deprecated : no longer relevant
+    Accepted --> Superseded : replaced by new ADR
+
+    Deprecated --> [*]
+    Superseded --> [*]
+
+    note right of Superseded
+        New ADR references the old one.
+        Old ADR status set to
+        "Superseded by ADR-NNNN".
+    end note
+```
+
 **Numbering:** Always use 4-digit zero-padded sequence numbers (`0001`, `0002`, ...).
 
 **File naming:** `NNNN-kebab-case-title.adoc` (e.g., `0001-use-typescript.adoc`).

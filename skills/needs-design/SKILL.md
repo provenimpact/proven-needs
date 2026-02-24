@@ -117,6 +117,15 @@ Describe the major components, modules, or services for this feature. For each:
 - Its interfaces (how other components interact with it)
 - Key implementation details
 
+Include Mermaid diagrams to clarify component relationships and key flows:
+
+- **Component interaction diagram** (`flowchart`) -- at minimum one diagram showing how the feature's components relate and communicate. Required for every design.
+- **Sequence diagram** (`sequenceDiagram`) -- for the primary user flow through the feature. Include when the flow involves multiple components or has non-obvious ordering.
+- **State diagram** (`stateDiagram-v2`) -- for entities with meaningful state transitions (e.g., order lifecycle, session states). Include when the feature manages stateful entities.
+- **Data flow diagram** (`flowchart`) -- when data moves through multiple components or transformations. Include when the data path is not obvious from the component diagram alone.
+
+Embed diagrams inline in the relevant design sections using AsciiDoc `[mermaid]` blocks.
+
 The structure depends on the project:
 
 | Project Type | Typical Structure |
@@ -190,7 +199,10 @@ Create `docs/features/<slug>/design.adoc`:
 
 <Adaptive structure -- components, modules, services, data flow.
  Organized appropriately for the project type.
- Scoped to this feature only.>
+ Scoped to this feature only.
+ Include Mermaid diagrams: at minimum a component interaction diagram
+ for the primary flow. Add sequence, state, or data flow diagrams
+ where they clarify complex interactions.>
 
 == Story Resolution
 
@@ -300,6 +312,9 @@ Before finalizing, verify:
 - Source versions are recorded correctly
 - Data model covers all entities implied by the stories (if applicable)
 - Interface contracts match the spec requirements (if applicable)
+- At least one Mermaid component interaction diagram is included in System Design
+- Diagrams accurately reflect the components and flows described in prose
+- Sequence diagrams cover the primary user flow (when the flow involves multiple components)
 
 ## Reference
 

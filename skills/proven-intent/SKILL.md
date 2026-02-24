@@ -195,6 +195,49 @@ Which did you mean?
 
 #### 2.3 Feature decomposition (for feature evolution intents)
 
+```mermaid
+flowchart TD
+    START((Intent)) --> CHECK{Existing\nfeatures?}
+
+    CHECK -->|No: Greenfield| GF_P1
+    CHECK -->|Yes: Evolution| EV_P1
+
+    subgraph greenfield ["Greenfield Path"]
+        GF_P1["Pass 1: Draft stories\ninto _drafts/ temp slug"]
+        GF_COHESION["Analyze cohesion\n(shared data, journey,\nindependent value)"]
+        GF_PROPOSE["Propose feature\ngroupings to user"]
+        GF_CONFIRM{User\nconfirms?}
+        GF_P2["Pass 2: Distribute stories\ninto feature packages"]
+        GF_CLEANUP["Remove _drafts/"]
+
+        GF_P1 --> GF_COHESION
+        GF_COHESION --> GF_PROPOSE
+        GF_PROPOSE --> GF_CONFIRM
+        GF_CONFIRM -->|Yes| GF_P2
+        GF_CONFIRM -->|Adjust| GF_PROPOSE
+        GF_P2 --> GF_CLEANUP
+    end
+
+    subgraph evolution ["Evolution Path"]
+        EV_P1["Pass 1: Draft stories\ninto _drafts/ temp slug"]
+        EV_CLASSIFY["Classify against\nexisting features\n(extends / new / updates)"]
+        EV_PROPOSE["Present mapping\nto user"]
+        EV_CONFIRM{User\nconfirms?}
+        EV_P2["Pass 2: Distribute\n(add to existing /\ncreate new packages)"]
+        EV_CLEANUP["Remove _drafts/"]
+
+        EV_P1 --> EV_CLASSIFY
+        EV_CLASSIFY --> EV_PROPOSE
+        EV_PROPOSE --> EV_CONFIRM
+        EV_CONFIRM -->|Yes| EV_P2
+        EV_CONFIRM -->|Adjust| EV_PROPOSE
+        EV_P2 --> EV_CLEANUP
+    end
+
+    GF_CLEANUP --> DONE((Feature packages\nready))
+    EV_CLEANUP --> DONE
+```
+
 **When no features exist yet (greenfield):**
 
 This uses a two-pass approach because `needs-stories` operates within a feature package (requires a slug), but feature groupings aren't known until stories are drafted.
@@ -381,6 +424,30 @@ Invoke capabilities in the derived order. For each capability:
 - Update the state model
 
 **Design divergence resolution (after `needs-implementation` completes):**
+
+```mermaid
+sequenceDiagram
+    participant Impl as needs-implementation
+    participant Orch as Orchestrator
+    participant User as User
+    participant Design as needs-design
+
+    Impl->>Orch: Report divergences<br/>(design vs. actual)
+    Orch->>User: Present each divergence<br/>with analysis of both directions
+
+    loop For each divergence
+        User->>Orch: Choose resolution
+        alt Update design
+            Orch->>Design: Reconciliation mode<br/>(divergence details)
+            Design->>Orch: Design updated
+        else Fix code
+            Orch->>Impl: Fix specific divergence
+            Impl->>Orch: Code fixed
+        end
+    end
+
+    Orch->>Orch: Continue to validation
+```
 
 When `needs-implementation` finishes, it reports any divergences between the design and what was actually built. For each divergence, it provides:
 - What the design specified vs. what was implemented
@@ -576,6 +643,22 @@ Slugs are stable -- do not rename feature directories after creation. If a featu
 
 A feature's status is derived from which artifacts exist and their states:
 
+```mermaid
+stateDiagram-v2
+    [*] --> Stories : user-stories.adoc created
+    Stories --> Specified : spec.adoc created
+    Specified --> Designed : design.adoc created (Current)
+    Designed --> Planned : tasks.adoc created (Current)
+    Planned --> Implemented : all tasks complete
+
+    Stories --> Archived : archived
+    Specified --> Archived : archived
+    Designed --> Archived : archived
+    Planned --> Archived : archived
+    Implemented --> Archived : archived
+    Archived --> Stories : un-archived
+```
+
 | Artifacts Present | Derived Status |
 |---|---|
 | user-stories.adoc only | `Stories` |
@@ -616,7 +699,33 @@ Each downstream artifact tracks its upstream:
 
 ### Format and dates
 
-All artifacts use AsciiDoc (`.adoc`). Dates use `YYYY-MM-DD` format.
+All artifacts use AsciiDoc (`.adoc`). Dates use `YYYY-MM-DD` format. Diagrams use Mermaid.
+
+### Diagram conventions
+
+All generated documentation artifacts use Mermaid for diagrams and visual flows. When a capability produces documentation that includes architecture, component interactions, data flows, or process sequences, it embeds Mermaid diagram blocks in the AsciiDoc output.
+
+**Architecture documentation** uses the C4 model via Mermaid's C4 diagram types. The orchestrator decides which levels to include based on project complexity:
+
+| C4 Level | Diagram Type | When to Include |
+|---|---|---|
+| **Level 1: System Context** | `C4Context` | Always. Shows the system, its users, and external systems. |
+| **Level 2: Container** | `C4Container` | Always. Shows major runtime containers (apps, databases, queues). |
+| **Level 3: Component** | `C4Component` | When a container has significant internal structure (e.g., service layer with multiple modules). |
+| **Level 4: Deployment** | `C4Deployment` | When the project has non-trivial deployment topology (e.g., multi-region, Kubernetes, CDN). |
+
+Guidelines for adaptive inclusion:
+- **Libraries, CLIs, simple projects:** L1 + L2 only.
+- **Web applications with separate frontend/backend:** L1 + L2 + L3 for the backend container.
+- **Microservices or distributed systems:** L1 + L2 + L3 + L4.
+
+**Feature design documentation** uses Mermaid for:
+- **Component interaction diagrams** (`flowchart`) -- how components relate and communicate
+- **Sequence diagrams** (`sequenceDiagram`) -- key user flows and system interactions
+- **State diagrams** (`stateDiagram-v2`) -- entities with meaningful state transitions
+- **Data flow diagrams** (`flowchart`) -- how data moves through the system
+
+Feature designs include at minimum one component interaction or sequence diagram for the primary flow. Additional diagrams are added when they clarify complex interactions that prose alone cannot convey efficiently.
 
 ### Requirement syntax
 

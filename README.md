@@ -111,6 +111,91 @@ flowchart LR
 
 Independent features can be processed concurrently.
 
+### Artifact Traceability
+
+Each capability reads upstream artifacts and writes its own. The diagram below shows the data flow -- which artifacts each capability consumes and produces.
+
+```mermaid
+flowchart LR
+    subgraph artifacts ["Artifacts"]
+        CONST[("constraints.adoc")]
+        STORIES[("user-stories.adoc")]
+        SPEC[("spec.adoc")]
+        DESIGN[("design.adoc\ndata-model.adoc\ncontracts/")]
+        TASKS[("tasks.adoc")]
+        CODE[("source code")]
+        TESTFILES[("test files")]
+        ADRS[("docs/adrs/")]
+        ARCH[("architecture.adoc")]
+        DEPS[("package manifests\nlockfiles")]
+        STATELOG[("state-log.adoc")]
+    end
+
+    NS["needs-stories"] -->|writes| STORIES
+    CONST -.->|reads| NS
+
+    NSP["needs-spec"] -->|writes| SPEC
+    STORIES -->|reads| NSP
+    CONST -.->|reads| NSP
+
+    ND["needs-design"] -->|writes| DESIGN
+    STORIES -->|reads| ND
+    SPEC -->|reads| ND
+    ADRS -.->|reads| ND
+    CONST -.->|reads| ND
+
+    NT["needs-tasks"] -->|writes| TASKS
+    DESIGN -->|reads| NT
+    STORIES -.->|fallback| NT
+
+    NI["needs-implementation"] -->|writes| CODE
+    TASKS -->|reads| NI
+    DESIGN -.->|fallback| NI
+
+    NTS["needs-tests"] -->|writes| TESTFILES
+    SPEC -->|reads| NTS
+    DESIGN -.->|reads| NTS
+    CODE -.->|reads| NTS
+
+    NADR["needs-adr"] -->|writes| ADRS
+
+    NARCH["needs-architecture"] -->|writes| ARCH
+    DESIGN -.->|reads| NARCH
+    ADRS -.->|reads| NARCH
+    CONST -.->|reads| NARCH
+    CODE -.->|reads| NARCH
+
+    NDEPS["needs-dependencies"] -->|writes| DEPS
+    DEPS -->|reads| NDEPS
+    CONST -.->|reads| NDEPS
+
+    NSEC["needs-security"] -->|writes| CODE
+    CODE -->|reads| NSEC
+    DEPS -.->|reads| NSEC
+    CONST -.->|reads| NSEC
+
+    NCOMP["needs-compliance"] -->|writes| DEPS
+    DEPS -->|reads| NCOMP
+    CONST -.->|reads| NCOMP
+
+    style CONST fill:#FF9800,color:#fff,stroke:none
+    style STATELOG fill:#2196F3,color:#fff,stroke:none
+```
+
+| Capability | Reads | Writes |
+|---|---|---|
+| `needs-stories` | `constraints.adoc` | `user-stories.adoc` |
+| `needs-spec` | `user-stories.adoc`, `constraints.adoc` | `spec.adoc` |
+| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
+| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback) | `tasks.adoc` |
+| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback) | source code |
+| `needs-tests` | `spec.adoc`, `design.adoc`, source code | test files |
+| `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
+| `needs-architecture` | all feature designs, ADRs, `constraints.adoc`, codebase | `docs/architecture.adoc` |
+| `needs-dependencies` | package manifests, `constraints.adoc` | package manifests, lockfiles |
+| `needs-security` | codebase, dependencies, config, `constraints.adoc` | source code, config |
+| `needs-compliance` | dependencies, `constraints.adoc` | dependencies, `constraints.adoc` |
+
 ## Entry Point
 
 Load the `proven-intent` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
@@ -195,6 +280,25 @@ Append-only audit trail at `docs/state-log.adoc` recording every transition: wha
 | `ears-requirements` | EARS methodology reference for stories and specs |
 
 Every capability follows the **observe/evaluate/execute** pattern:
+
+```mermaid
+flowchart TD
+    O["Observe\n<i>Read artifacts, codebase,\nconstraints in this domain</i>"]
+    E["Evaluate\n<i>Does desired state require action?\nDo constraints allow it?</i>"]
+    X["Execute\n<i>Make the minimum changes.\nCreate or update artifacts.</i>"]
+
+    O --> E
+    E -->|Action needed| X
+    E -->|"Already current"| DONE["Report: no action needed"]
+    E -->|"Constraint violation"| BLOCK["Report violation\nto orchestrator"]
+    X --> VERIFY["Verify output"]
+    VERIFY --> REPORT["Return result\nto orchestrator"]
+
+    style DONE fill:#4CAF50,color:#fff,stroke:none
+    style BLOCK fill:#f44336,color:#fff,stroke:none
+    style REPORT fill:#2196F3,color:#fff,stroke:none
+```
+
 1. **Observe** -- assess current state in this domain
 2. **Evaluate** -- does the desired state require action? do constraints allow it?
 3. **Execute** -- make the minimum changes
@@ -214,6 +318,32 @@ Every capability follows the **observe/evaluate/execute** pattern:
 | State Log | `docs/state-log.adoc` | Append-only audit trail |
 | Code | project source | Living -- the actual system |
 
+### Version Tracking and Staleness
+
+Each downstream artifact tracks its upstream version. When an upstream artifact changes, downstream artifacts become stale and need syncing.
+
+```mermaid
+flowchart LR
+    S["user-stories.adoc\n:version:"]
+    SP["spec.adoc\n:source-stories-version:"]
+    D["design.adoc\n:source-stories-version:\n:source-spec-version:"]
+    T["tasks.adoc\n:source-design-version:\n:source-stories-version:\n:source-spec-version:"]
+
+    S -->|tracked by| SP
+    S -->|tracked by| D
+    SP -->|tracked by| D
+    S -->|tracked by| T
+    SP -->|tracked by| T
+    D -->|tracked by| T
+
+    style S fill:#4CAF50,color:#fff,stroke:none
+    style SP fill:#2196F3,color:#fff,stroke:none
+    style D fill:#FF9800,color:#fff,stroke:none
+    style T fill:#9C27B0,color:#fff,stroke:none
+```
+
+When stories change, specs become stale. When specs change, the design becomes stale. When the design changes, tasks become stale. The orchestrator detects these cascades during the Evaluate phase and includes sync steps in the transition plan.
+
 ## Risk Classification
 
 Transitions are auto-approved or require confirmation based on risk:
@@ -226,7 +356,7 @@ Transitions are auto-approved or require confirmation based on risk:
 
 ## EARS Requirements
 
-Acceptance criteria and specifications use [EARS sentence types](skills/ears-requirements/reference/ears-reference.adoc):
+Acceptance criteria and specifications use [EARS sentence types](skills/ears-requirements/references/ears-reference.adoc):
 
 | Type | Pattern | Use for |
 |------|---------|---------|
@@ -279,5 +409,5 @@ constraints.adoc
 
 ## Reference
 
-- [EARS Quick Reference](skills/ears-requirements/reference/ears-reference.adoc) -- Requirement syntax standard
+- [EARS Quick Reference](skills/ears-requirements/references/ears-reference.adoc) -- Requirement syntax standard
 - [Example Session](skills/proven-intent/references/example-session.adoc) -- Full walkthrough of feature and maintenance intents

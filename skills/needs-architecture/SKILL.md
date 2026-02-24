@@ -81,7 +81,7 @@ Constraint issues: [list or none]
 
 ### Generate or update the architecture document
 
-Write `docs/architecture.adoc`:
+Write `docs/architecture.adoc` using the C4 model for structural diagrams. The document combines C4 diagrams (via Mermaid) with prose sections for context that diagrams alone cannot convey.
 
 ```asciidoc
 = System Architecture
@@ -104,6 +104,89 @@ Write `docs/architecture.adoc`:
 
 <High-level description of the system, its purpose, and boundaries.>
 
+== System Context (C4 Level 1)
+
+<Who uses the system and what external systems does it interact with.>
+
+[mermaid]
+----
+C4Context
+  title System Context Diagram
+
+  Person(user, "User", "Description of the user role")
+  System(system, "System Name", "Brief description of the system")
+  System_Ext(ext, "External System", "Brief description")
+
+  Rel(user, system, "Uses")
+  Rel(system, ext, "Integrates with")
+----
+
+== Container View (C4 Level 2)
+
+<Major runtime containers: applications, databases, message queues, file stores.
+ Show how containers communicate.>
+
+[mermaid]
+----
+C4Container
+  title Container Diagram
+
+  Person(user, "User", "Description")
+
+  System_Boundary(system, "System Name") {
+    Container(app, "Application", "Technology", "Description")
+    ContainerDb(db, "Database", "Technology", "Description")
+  }
+
+  System_Ext(ext, "External System", "Description")
+
+  Rel(user, app, "Uses", "HTTPS")
+  Rel(app, db, "Reads/writes", "SQL")
+  Rel(app, ext, "Calls", "HTTPS/JSON")
+----
+
+== Component View (C4 Level 3)
+
+<Internal structure of containers with significant complexity.
+ Show major modules, services, or layers within a container.
+ Include this section only when a container has meaningful internal structure.>
+
+[mermaid]
+----
+C4Component
+  title Component Diagram - <Container Name>
+
+  Container_Boundary(container, "Container Name") {
+    Component(comp1, "Component", "Technology", "Description")
+    Component(comp2, "Component", "Technology", "Description")
+  }
+
+  ContainerDb(db, "Database", "Technology", "Description")
+
+  Rel(comp1, comp2, "Uses")
+  Rel(comp2, db, "Reads/writes")
+----
+
+== Deployment View (C4 Level 4)
+
+<How containers are deployed to infrastructure.
+ Include only for non-trivial deployment topologies.>
+
+[mermaid]
+----
+C4Deployment
+  title Deployment Diagram
+
+  Deployment_Node(cloud, "Cloud Provider", "Description") {
+    Deployment_Node(runtime, "Runtime", "Description") {
+      Container(app, "Application", "Technology", "Description")
+    }
+    Deployment_Node(data, "Data Tier", "Description") {
+      ContainerDb(db, "Database", "Technology", "Description")
+    }
+  }
+----
+
 == Technology Stack
 
 <Languages, frameworks, databases, infrastructure.
@@ -112,24 +195,9 @@ Write `docs/architecture.adoc`:
 * <<adrs/0001-use-typescript.adoc#,ADR-0001>>: TypeScript (backend and frontend)
 * <<adrs/0002-use-postgresql.adoc#,ADR-0002>>: PostgreSQL (persistence)
 
-== System Components
-
-<Major components, modules, or services.
- For each: responsibility, key interfaces, dependencies.
- Adapt structure to the project type.>
-
 == Data Architecture
 
 <Data stores, schemas, data flow between components.>
-
-== External Interfaces
-
-<APIs, integrations, user-facing interfaces.>
-
-== Deployment Architecture
-
-<How the system is deployed and operated.
- Skip if not applicable (e.g., a library).>
 
 == Cross-Cutting Concerns
 
@@ -137,13 +205,28 @@ Write `docs/architecture.adoc`:
  Skip sections that do not apply.>
 ```
 
-**Section guidance:**
+### C4 level inclusion
+
+The C4 levels included in the architecture document are adaptive based on project complexity. The orchestrator determines the appropriate levels during invocation.
+
+| Project Type | C4 Levels | Rationale |
+|---|---|---|
+| Libraries, SDKs | L1 + L2 only | No deployment; containers are the library and its consumers |
+| CLI tools | L1 + L2 only | Simple runtime; L2 shows the CLI and its data stores |
+| Web applications (monolith) | L1 + L2 + L3 (backend) | Backend container benefits from component breakdown |
+| Web applications (frontend + API) | L1 + L2 + L3 (API) | API container has meaningful internal structure |
+| Microservices / distributed | L1 + L2 + L3 + L4 | Multiple containers with complex deployment topology |
+| Mobile apps | L1 + L2 + L3 (app) | App container has layers (UI, state, data, platform) |
+
+Remove C4 level sections that are not applicable rather than leaving them with placeholder content.
+
+### Section guidance
 
 The sections above are a default starting point. Adapt based on the project:
 
-- **Libraries/SDKs:** Replace "Deployment Architecture" with "Distribution". Replace "System Components" with "Module Structure".
-- **CLI tools:** "External Interfaces" becomes "Command Interface". "Deployment" becomes "Installation".
-- **Microservices:** Add "Service Communication" and "Service Discovery" sections.
+- **Libraries/SDKs:** Replace "Data Architecture" with "Data Flow". Omit Deployment View and Cross-Cutting Concerns if trivial.
+- **CLI tools:** "Cross-Cutting Concerns" may include "Error Output" and "Exit Codes". Omit Deployment View.
+- **Microservices:** Add "Service Communication" and "Service Discovery" under Cross-Cutting Concerns.
 - **Simple projects:** Merge or remove sections that add no value.
 
 Remove sections that do not apply rather than leaving them empty.
@@ -161,10 +244,13 @@ Remove sections that do not apply rather than leaving them empty.
 ## Quality Checklist
 
 Before finalizing, verify:
+- C4 System Context diagram accurately shows all users and external systems
+- C4 Container diagram includes all major runtime containers and their communication
+- C4 Component diagrams (if included) match the actual module/service structure
+- C4 Deployment diagram (if included) reflects the real infrastructure topology
 - All ADR technology decisions are reflected in Technology Stack
 - Component descriptions match the actual codebase (if one exists)
 - No empty sections remain (remove instead)
-- External interfaces match what the system actually exposes
 - Data architecture covers all persistent data stores
 - Architecture constraints from `constraints.adoc` are addressed
 - Feature Design Sources table lists all feature designs and their current versions
