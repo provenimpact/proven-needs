@@ -147,18 +147,29 @@ When the last phase is committed:
 docs/features/shopping-cart/tasks.adoc  -> :status: Implemented
 ....
 
-2. Reconcile the design document -- review what was actually built against what the design describes, update any sections that diverged during implementation, and ensure `:status:` remains `Current`:
+2. Detect design divergences -- compare what was built against the design. For each divergence, analyze both resolution directions (update design vs. fix code) and report to the orchestrator:
 +
 ....
-docs/features/shopping-cart/design.adoc -> :status: Current  (reconciled)
-....
+Design divergences for shopping-cart:
 
-3. Commit:
+  1. CartService validation placement
+     Design: Validation logic in CartService.addItem()
+     Implementation: Zod schema validation in POST /api/cart route handler
+     Reason: Zod schema validation at the API boundary is more idiomatic
+     Update design: Reflect route-level validation pattern
+     Fix code: Move validation into CartService
+
+No other divergences detected.
+....
++
+The orchestrator presents this to the user for decision. This skill does NOT modify `design.adoc` -- design updates are routed to `needs-design` by the orchestrator.
+
+3. Commit task status update:
 +
 ....
 git commit -m "chore(shopping-cart): mark implementation complete
 
-Set tasks status to Implemented. Reconcile design to reflect what was built."
+Set tasks status to Implemented."
 ....
 
-Report to the orchestrator that the shopping-cart feature implementation is complete.
+Report to the orchestrator that the shopping-cart feature implementation is complete, along with the divergence report.

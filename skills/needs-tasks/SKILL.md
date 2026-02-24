@@ -63,7 +63,11 @@ Given the desired state from the orchestrator, determine what action is needed.
 
 ### 2. Transitive staleness check
 
-Compare the task list's `:source-stories-version:` and `:source-spec-version:` against the current versions. If these differ (even if `:source-design-version:` matches), the design itself may be stale. Warn the orchestrator and recommend updating the design first.
+If `:source-design-version:` matches the current design version, trust that the design is current -- the design skill is responsible for tracking its own upstream staleness against stories and specs.
+
+If `:source-design-version:` does not match, the task list is stale. Warn the orchestrator and recommend updating the design first (which will cascade any upstream story/spec changes into the design before tasks are regenerated).
+
+Do not independently compare `:source-stories-version:` or `:source-spec-version:` against their current versions. Those are recorded for traceability, but staleness detection flows through the design.
 
 ### 3. Check constraints
 

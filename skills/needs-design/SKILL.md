@@ -23,7 +23,7 @@ Read `docs/features/<slug>/user-stories.adoc`. Extract `:version:`, all stories,
 
 Read `docs/features/<slug>/spec.adoc`. Extract `:version:`, all requirement IDs and texts.
 
-**If missing:** Note that specifications are unavailable. Report to the orchestrator. The design will reference only story-level acceptance criteria and spec IDs will not be available in Story Resolution. If proceeding: set `:source-spec-version:` to `n/a` in the design output.
+**If missing:** Report to the orchestrator that specifications are unavailable. The orchestrator should invoke `needs-spec` first -- every feature gets a specification. As a fallback (e.g., partial transition recovery), the design can proceed with story-level acceptance criteria only. If proceeding without spec: set `:source-spec-version:` to `n/a` in the design output.
 
 ### 3. Read project-wide artifacts
 
@@ -270,12 +270,22 @@ Ask the user whether to apply incrementally or redesign from scratch.
 
 ### Post-implementation reconciliation
 
-After `needs-implementation` completes, the design should reflect what was actually built, not just what was planned. If the implementation diverged from the design (e.g., the design described an approach but the implementation took a different one due to practical constraints), the design should be updated to match the implemented reality.
+This mode is invoked by the orchestrator after `needs-implementation` reports design divergences and the user has decided which divergences should be resolved by updating the design (vs. fixing the code).
 
-1. Compare design elements against the implemented code
-2. Update any design sections where the implementation diverged
-3. Bump version (PATCH if minor clarifications, MINOR if substantive updates)
+The orchestrator passes:
+- The list of divergences where the user chose "update design"
+- For each: what the design specified, what was implemented, and the rationale
+
+**Steps:**
+
+1. For each divergence routed to this skill:
+   a. Locate the relevant design sections (system design, story resolution, data model, contracts)
+   b. Update the design to accurately reflect what was built
+   c. Ensure the Story Resolution section still correctly maps stories to design elements
+2. Verify that the updated design remains internally consistent (no orphaned references, no contradictions between sections)
+3. Bump version: PATCH if minor clarifications, MINOR if substantive structural changes
 4. Keep `:status:` as `Current` -- the design remains a living document
+5. Update `:last-updated:` to today's date
 
 ## Quality Checklist
 

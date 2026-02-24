@@ -14,7 +14,8 @@ Assess the current state of architecture documentation.
 ### 1. Check for existing architecture document
 
 If `docs/architecture.adoc` exists:
-- Read `:version:`, `:source-design-version:`, `:last-updated:`
+- Read `:version:`, `:last-updated:`
+- Read the Feature Design Sources section to determine which feature design versions the architecture was synthesized from
 - Read the full content
 
 ### 2. Check for feature designs
@@ -60,7 +61,7 @@ Given the desired state from the orchestrator, determine what action is needed.
 
 **Greenfield mode:** At least one feature design must exist. If not, report to orchestrator that designs are needed first.
 
-**Update mode:** Compare feature design versions against `:source-design-version:` in the architecture document. If designs have been updated or new features implemented since last architecture update, note what has changed.
+**Update mode:** Compare each feature's current design version against the version recorded in the architecture document's Feature Design Sources section. If any designs have been updated or new features implemented since the last architecture update, note what has changed.
 
 ### 3. Check constraints
 
@@ -85,9 +86,19 @@ Write `docs/architecture.adoc`:
 ```asciidoc
 = System Architecture
 :version: 1.0.0
-:source-design-version: <latest feature design version or "multiple">
 :last-updated: YYYY-MM-DD
 :toc:
+
+== Feature Design Sources
+
+[cols="1,1", options="header"]
+|===
+| Feature | Design Version
+
+| product-browsing | 1.0.0
+| shopping-cart | 1.0.0
+| checkout | 1.0.0
+|===
 
 == Overview
 
@@ -141,7 +152,7 @@ Remove sections that do not apply rather than leaving them empty.
 
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
-- `:source-design-version:` records which design versions the architecture reflects. Use "multiple" and list in the document body when synthesizing from multiple feature designs.
+- The Feature Design Sources table records which feature design versions the architecture was synthesized from. When updating, update the table to reflect the current design versions.
 - MAJOR bump: components removed or fundamentally restructured
 - MINOR bump: components added or modified
 - PATCH bump: clarifications, formatting, metadata updates
@@ -156,6 +167,7 @@ Before finalizing, verify:
 - External interfaces match what the system actually exposes
 - Data architecture covers all persistent data stores
 - Architecture constraints from `constraints.adoc` are addressed
+- Feature Design Sources table lists all feature designs and their current versions
 - Version and date are updated
 
 ## Reference

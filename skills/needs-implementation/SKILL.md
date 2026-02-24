@@ -146,10 +146,37 @@ Present options:
 
 **If all phases are complete:**
 1. Set `:status: Implemented` in `docs/features/<slug>/tasks.adoc`
-2. Reconcile the design: compare what was actually implemented against the design. If the implementation diverged from the design in any way, update the design to reflect what was built (the design is a living document that must stay accurate). Bump the design version (PATCH for minor clarifications, MINOR for substantive updates). Keep design `:status:` as `Current`.
-3. Update `:last-updated:` to today's date in all updated files
-4. Commit these status updates
-5. Report to the orchestrator that implementation is complete
+2. Detect design divergences (see below)
+3. Update `:last-updated:` to today's date in updated files
+4. Commit task status updates
+5. Report to the orchestrator that implementation is complete, along with any divergence report
+
+#### Design divergence detection
+
+After all phases are complete, compare what was actually implemented against the design document. For each divergence found:
+
+1. **Describe the divergence:** What the design specified vs. what was actually built
+2. **Analyze both resolution directions:**
+   - **Update design:** Explain why updating the design to match the implementation makes sense (e.g., "the design described a separate CartService, but in practice the logic was simpler and fit directly in the route handler")
+   - **Fix code:** Explain why adjusting the implementation to match the design makes sense (e.g., "the architecture constraint requires business logic in the service layer, not route handlers")
+3. **Provide context:** Why the implementation diverged -- was it a practical constraint, a better approach discovered during coding, a misunderstanding in the design, or an oversight?
+
+Report all divergences to the orchestrator in a structured format:
+
+```
+Design divergences for <slug>:
+
+  1. CartService validation placement
+     Design: Validation logic in CartService.addItem()
+     Implementation: Validation in POST /api/cart route handler
+     Reason: Zod schema validation felt more natural at the API boundary
+     Update design: Reflect route-level validation pattern (aligns with how other routes work)
+     Fix code: Move validation into CartService (satisfies architecture constraint: business logic in service layer)
+
+  2. ...
+```
+
+The orchestrator presents this to the user for decision-making. This skill does NOT modify `design.adoc` -- design updates are routed to `needs-design` by the orchestrator.
 
 ### Story-by-story implementation (when no task list exists)
 
@@ -170,10 +197,10 @@ When implementing directly from the design without a task list:
 5. **Ask to continue** after each story.
 
 6. **When all stories are implemented:**
-   a. Reconcile the design: update the feature's `design.adoc` to reflect what was actually built if the implementation diverged. Bump version if updated. Keep `:status:` as `Current`.
-   b. Update `:last-updated:`
+   a. Detect design divergences using the same process described in "Design divergence detection" above. Report all divergences to the orchestrator with structured analysis of both resolution directions. Do NOT modify `design.adoc` directly.
+   b. Update `:last-updated:` in modified files
    c. Commit any updates
-   d. Report to the orchestrator
+   d. Report to the orchestrator with the divergence report
 
 **Note:** No `tasks.adoc` is created in this flow. Progress is tracked via commits.
 

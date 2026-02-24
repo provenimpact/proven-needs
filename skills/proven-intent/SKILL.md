@@ -89,6 +89,7 @@ These operate within a single feature package:
 | Design | `needs-design` | Create implementation blueprint for a feature |
 | Tasks | `needs-tasks` | Break design into phased implementation units |
 | Implementation | `needs-implementation` | Write and verify code for a feature |
+| Tests | `needs-tests` | Derive and generate tests from specifications |
 
 ### Project-wide capabilities
 
@@ -118,13 +119,13 @@ When this skill is invoked, immediately build the current state model:
 
 1. **`constraints.adoc`** -- read all constraint categories and rules. If missing, note that no constraints are defined. Do not create it automatically -- the user declares constraints intentionally.
 
-2. **`docs/features/`** -- list all feature directories. For each, check which artifacts exist and read their `:version:` and `:status:` attributes.
+2. **`docs/features/`** -- list all feature directories. For each, check which artifacts exist and read their `:version:` and `:status:` attributes. Features with `:status: Archived` in `user-stories.adoc` are reported in the summary but skipped during intent classification and staleness checks.
 
 3. **`docs/adrs/`** -- read the index, note how many ADRs exist and their statuses.
 
 4. **`docs/architecture.adoc`** -- check existence, read `:version:` if present.
 
-5. **`docs/state-log.adoc`** -- check existence, read recent transitions for context.
+5. **`docs/state-log.adoc`** -- check existence, read recent transitions for context. Pay particular attention to any transitions with `:result: Partial` -- these indicate work that was started but not completed. The partial transition's `:features:` and `:capabilities-invoked:` fields provide useful context for understanding why artifacts are in their current state (e.g., stories and spec exist but design is missing because a prior transition was stopped mid-way).
 
 #### 1.2 Analyze codebase
 
@@ -196,7 +197,11 @@ Which did you mean?
 
 **When no features exist yet (greenfield):**
 
-1. Use `needs-stories` to derive user stories from the intent
+This uses a two-pass approach because `needs-stories` operates within a feature package (requires a slug), but feature groupings aren't known until stories are drafted.
+
+**Pass 1 -- Draft stories with a temporary slug:**
+
+1. Invoke `needs-stories` with a temporary working slug (e.g., `_drafts`) to derive user stories from the intent. This produces an initial set of stories without committing to a feature structure.
 2. Analyze story cohesion to propose feature groupings:
    - Stories that share the same data entities → same feature
    - Stories in the same user journey → same feature
@@ -218,13 +223,22 @@ Which did you mean?
 
    Adjust grouping?
    ```
-4. Wait for user confirmation before creating feature packages
+4. Wait for user confirmation before creating feature packages.
+
+**Pass 2 -- Distribute stories into feature packages:**
+
+5. For each confirmed feature, invoke `needs-stories` with the final slug to create the feature's `user-stories.adoc`, distributing the drafted stories into their assigned feature packages. Story IDs are reassigned to be sequential within each feature (US-001, US-002, ...).
+6. Remove the temporary `_drafts` directory if it was created on disk.
 
 **When features already exist (evolution):**
 
-1. Observe existing features and their stories
-2. Derive stories from the new intent
-3. Classify each story against existing features:
+This also uses a two-pass approach. Stories are drafted first, then classified against existing features.
+
+**Pass 1 -- Draft stories and classify:**
+
+1. Observe existing features and their stories.
+2. Invoke `needs-stories` with a temporary working slug (e.g., `_drafts`) to derive stories from the new intent.
+3. Classify each drafted story against existing features:
    - **Extends existing:** Story shares data/state/journey with an existing feature → propose adding to that feature
    - **New feature:** Story doesn't fit any existing feature → propose new feature package
    - **Updates existing:** Story modifies behavior already covered by an existing feature → propose updating that feature
@@ -237,15 +251,21 @@ Which did you mean?
    This intent maps to:
 
    Extend: user-authentication/ (existing)
-     - Add story: US-007: SMS Password Reset
+     - Add story: SMS Password Reset
      - Update spec and design for SMS flow
 
    Create: notification-preferences/ (new)
-     - US-008: Manage Notification Channels
-     - US-009: Set Notification Preferences
+     - Manage Notification Channels
+     - Set Notification Preferences
 
    Confirm or adjust?
    ```
+
+**Pass 2 -- Distribute stories:**
+
+6. For stories assigned to existing features, invoke `needs-stories` (add mode) for each feature with the relevant stories.
+7. For stories assigned to new features, invoke `needs-stories` (create mode) for each new feature.
+8. Remove the temporary `_drafts` directory if it was created on disk.
 
 **Constraint surfacing during decomposition:**
 
@@ -271,9 +291,10 @@ For each feature in the transition plan, check:
 
 Does the desired state require artifacts that don't exist yet? For each involved capability:
 - `needs-spec` requires stories → are stories available?
-- `needs-design` requires stories → are stories available?
+- `needs-design` requires stories and spec → are both available?
 - `needs-tasks` works best with design → is design available?
 - `needs-implementation` requires at minimum a design → does one exist?
+- `needs-tests` requires spec and implementation → are both available?
 
 If preconditions are unmet, the orchestrator can satisfy them as part of the transition (by invoking earlier capabilities first). This is not a pipeline -- the orchestrator dynamically determines what's needed.
 
@@ -312,9 +333,18 @@ Build a dependency graph of capability invocations. The graph is derived, not ha
 **For each feature in scope:**
 
 1. Determine which artifacts need creating or updating
-2. Order capabilities by dependency (stories before specs before design before tasks before implementation)
-3. Skip capabilities whose artifacts are already current and satisfy the desired state
+2. Order capabilities by dependency: stories → specs → design → tasks → implementation → tests. `needs-spec` is always invoked -- every feature gets a specification. Specs are the contract between stories (WHY) and design (HOW); skipping them loses traceability and black-box testability.
+3. Skip capabilities whose artifacts are already current and satisfy the desired state (e.g., stories already exist and cover the intent)
 4. Mark which steps can run in parallel across features (independent features can be processed concurrently)
+
+**Architecture updates:**
+
+After all feature implementations in the current transition are complete, invoke `needs-architecture` if:
+- Any feature implementation changed the system's component structure (new services, new data stores, new external interfaces)
+- The architecture document doesn't exist yet
+- The architecture document is stale relative to the implemented features
+
+Do not invoke `needs-architecture` mid-transition between features -- wait until all features are implemented so the architecture document reflects the complete system state.
 
 **Present the plan to the user:**
 
@@ -349,6 +379,18 @@ Invoke capabilities in the derived order. For each capability:
 - Verify the artifact was created/updated correctly
 - Check that no constraints were violated
 - Update the state model
+
+**Design divergence resolution (after `needs-implementation` completes):**
+
+When `needs-implementation` finishes, it reports any divergences between the design and what was actually built. For each divergence, it provides:
+- What the design specified vs. what was implemented
+- Analysis of both resolution directions: (a) update the design to match implementation, (b) fix the code to match the design
+- Rationale for why the implementation diverged (practical constraints, better approach discovered, etc.)
+
+Present this analysis to the user with enough context to make a good decision. For each divergence:
+- If the user chooses "update design" → invoke `needs-design` (reconciliation mode) with the divergence details
+- If the user chooses "fix code" → re-invoke `needs-implementation` with the specific fix
+- The user may choose different resolutions for different divergences
 
 **Error handling:**
 - If a capability fails validation → stop, report to user, ask how to proceed
@@ -458,8 +500,12 @@ Constraints are intentionally stable. Frequent constraint changes indicate they 
 ### Constraint enforcement
 
 Every capability checks relevant constraints during its Evaluate phase:
+- `needs-stories`: checks quality constraints (testability, completeness)
+- `needs-spec`: checks that specs do not duplicate project-wide constraints
 - `needs-design`: checks architecture constraints
+- `needs-tasks`: checks quality constraints (testing tasks exist if coverage constraints apply)
 - `needs-implementation`: checks quality, performance, architecture constraints
+- `needs-tests`: checks quality constraints (coverage thresholds, test requirements)
 - `needs-dependencies`: checks licensing, security constraints
 - `needs-security`: checks security constraints
 - `needs-compliance`: checks licensing constraints
@@ -474,7 +520,6 @@ A constraint violation blocks a transition unless the user explicitly chooses to
 
 ```asciidoc
 = State Transition Log
-:version: 1.0.0
 :last-updated: YYYY-MM-DD
 
 == TRANSITION-003
@@ -538,6 +583,21 @@ A feature's status is derived from which artifacts exist and their states:
 | + design.adoc (status: Current) | `Designed` |
 | + tasks.adoc (status: Current) | `Planned` |
 | All artifacts, tasks all ticked, tasks status Implemented | `Implemented` |
+| `:status: Archived` in user-stories.adoc | `Archived` |
+
+### Feature archival
+
+A feature is archived when its scope has fundamentally changed (superseded by a new feature), or when it is no longer relevant to the system. Archival is intentional and explicit:
+
+1. Set `:status: Archived` in the feature's `user-stories.adoc`
+2. Bump the stories version (MAJOR -- breaking change)
+3. Record the archival in the state log
+
+**Archived features:**
+- Are skipped during intent classification (the Observe phase reports them but does not match new intents to them)
+- Are not included in staleness checks
+- Remain on disk as historical records (never deleted)
+- Can be un-archived by removing the `:status: Archived` attribute if the feature becomes relevant again
 
 ### Artifact versioning within features
 

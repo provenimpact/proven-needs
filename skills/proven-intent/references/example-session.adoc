@@ -26,33 +26,35 @@ Intent type: **Feature evolution** (describes user-facing capabilities with user
 
 Not a constraint (no universal quantifiers, has identifiable user roles and journeys).
 
-=== Step 3: Feature Decomposition
+=== Step 3: Feature Decomposition (Two-Pass)
 
-Invoke `needs-stories` to derive stories from the intent. 5 stories identified.
+**Pass 1:** Invoke `needs-stories` with temporary slug `_drafts` to derive stories from the intent. 5 stories identified.
 
-Propose feature grouping based on story cohesion:
+Analyze story cohesion and propose feature grouping:
 
 ....
 Based on your intent, I propose 3 features:
 
 Feature 1: product-browsing
-  - US-001: View Product Catalog
-  - US-002: Search Products
+  - View Product Catalog
+  - Search Products
   (Share product data and catalog UI)
 
 Feature 2: shopping-cart
-  - US-001: Add to Cart
-  - US-002: View Cart
+  - Add to Cart
+  - View Cart
   (Share cart state and cart data)
 
 Feature 3: checkout
-  - US-001: Checkout Process
+  - Checkout Process
   (Independent user journey with payment flow)
 
 Adjust grouping?
 ....
 
 User confirms the grouping.
+
+**Pass 2:** For each confirmed feature, invoke `needs-stories` with the final slug to create `user-stories.adoc` with proper feature-scoped story IDs (US-001, US-002, ... per feature). Remove temporary `_drafts` directory.
 
 === Step 4: Evaluate Feasibility
 
@@ -75,13 +77,15 @@ For each feature (product-browsing, shopping-cart, checkout):
   3. needs-design: Create implementation design
   4. needs-tasks: Create phased task breakdown
   5. needs-implementation: Implement code
+  6. Resolve any design divergences (user decides per-divergence)
+  7. needs-tests: Generate tests from specifications
 
 Additionally:
   - needs-adr: Record technology decisions (during design phases)
-  - needs-architecture: Document architecture (after implementation)
+  - needs-architecture: Document architecture (after all features implemented)
 
 Risk: HIGH (new features, 3 feature packages, full lifecycle)
-Estimated: 15+ artifacts + code
+Estimated: 15+ artifacts + code + tests
 
 Proceed?
 ....
@@ -99,6 +103,8 @@ User confirms.
    - Invokes **needs-adr** to create ADR-0001 (TypeScript) and ADR-0002 (PostgreSQL)
 4. **needs-tasks** creates `docs/features/product-browsing/tasks.adoc` v1.0.0 (3 phases, 8 tasks)
 5. **needs-implementation** implements code phase by phase
+6. **Divergence check:** needs-implementation reports no divergences (implementation matched design)
+7. **needs-tests** generates tests from PROD-001 through PROD-008 (3 test files, 19 test cases)
 
 ==== Feature 2: shopping-cart
 
@@ -108,6 +114,22 @@ User confirms.
    - References existing ADRs, no new decisions needed
 4. **needs-tasks** creates `docs/features/shopping-cart/tasks.adoc` v1.0.0 (3 phases, 9 tasks)
 5. **needs-implementation** implements code phase by phase
+6. **Divergence check:** needs-implementation reports 1 divergence:
++
+....
+Design divergence: CartService validation placement
+  Design: Validation logic in CartService.addItem()
+  Implementation: Zod schema validation in POST /api/cart route handler
+  Reason: Zod schema validation at the API boundary is more idiomatic with the project's patterns
+  Update design: Reflect route-level validation (aligns with other routes)
+  Fix code: Move validation into CartService (satisfies architecture constraint)
+....
++
+User decides: "Update design" -- the route-level pattern is consistent and the constraint is about business logic, not input validation.
++
+Orchestrator invokes **needs-design** (reconciliation mode) to update `design.adoc` v1.0.1.
+
+7. **needs-tests** generates tests from CART-001 through CART-008 (3 test files, 22 test cases)
 
 ==== Feature 3: checkout
 
@@ -118,10 +140,12 @@ User confirms.
    - Invokes **needs-adr** to create ADR-0003 (Stripe)
 4. **needs-tasks** creates `docs/features/checkout/tasks.adoc` v1.0.0 (3 phases, 7 tasks)
 5. **needs-implementation** implements code phase by phase
+6. **Divergence check:** needs-implementation reports no divergences
+7. **needs-tests** generates tests from CHK-001 through CHK-006 (2 test files, 14 test cases)
 
 ==== Post-implementation
 
-- **needs-architecture** creates `docs/architecture.adoc` v1.0.0 from all feature designs and codebase
+- **needs-architecture** creates `docs/architecture.adoc` v1.0.0 from all feature designs and codebase (invoked after all features are implemented)
 
 === Step 6: Validate
 
@@ -149,10 +173,10 @@ Desired state "users can browse products, add them to cart, and checkout" is ach
 :features: product-browsing (new), shopping-cart (new), checkout (new)
 :desired-state: E-commerce site with product browsing, cart management, and checkout
 :prior-state: Empty project scaffold
-:capabilities-invoked: needs-stories, needs-spec, needs-design, needs-adr, needs-tasks, needs-implementation, needs-architecture
+:capabilities-invoked: needs-stories, needs-spec, needs-design, needs-adr, needs-tasks, needs-implementation, needs-tests, needs-architecture
 :constraints-checked: Security (pass), Architecture (pass), Quality (pass), Licensing (pass)
 :result: Achieved
-:artifacts-modified: 12 feature artifacts, 3 ADRs, 1 architecture doc, source code
+:artifacts-modified: 12 feature artifacts, 3 ADRs, 1 architecture doc, 8 test files, source code
 ....
 
 ---
