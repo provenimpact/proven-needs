@@ -41,7 +41,7 @@ If this is not a greenfield project, analyze what already exists to avoid creati
 Return to the orchestrator:
 ```
 Feature: <slug>
-Design: {exists: true/false, version: "X.Y.Z", status: "Current/Stale/Implemented"}
+Design: {exists: true/false, version: "X.Y.Z", status: "Current/Stale"}
 Stories: {exists: true, version: "X.Y.Z"}
 Spec: {exists: true/false, version: "X.Y.Z"}
 Tasks: {exists: true/false, version: "X.Y.Z", status: "Current/Stale/Implemented", progress: "N/M ticked"}

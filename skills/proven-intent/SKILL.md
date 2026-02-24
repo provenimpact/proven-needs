@@ -301,7 +301,7 @@ Options:
 Check if any existing artifacts involved in the transition are stale:
 - Feature stories updated but spec not synced?
 - Spec updated but design not refreshed?
-- Design implemented but architecture not updated?
+- Feature implemented but architecture not updated?
 
 Report staleness and recommend resolution before proceeding.
 
@@ -537,7 +537,7 @@ A feature's status is derived from which artifacts exist and their states:
 | + spec.adoc | `Specified` |
 | + design.adoc (status: Current) | `Designed` |
 | + tasks.adoc (status: Current) | `Planned` |
-| All artifacts, tasks all ticked, design status Implemented | `Implemented` |
+| All artifacts, tasks all ticked, tasks status Implemented | `Implemented` |
 
 ### Artifact versioning within features
 

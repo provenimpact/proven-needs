@@ -139,19 +139,26 @@ Description:: Create Cart table and CartItem table...
 
 == Final State (After All Phases Complete)
 
-When the last phase is committed, set both files to Implemented:
+When the last phase is committed:
 
+1. Set the task list status to `Implemented`:
++
 ....
 docs/features/shopping-cart/tasks.adoc  -> :status: Implemented
-docs/features/shopping-cart/design.adoc -> :status: Implemented
 ....
 
-Commit the status updates:
+2. Reconcile the design document -- review what was actually built against what the design describes, update any sections that diverged during implementation, and ensure `:status:` remains `Current`:
++
+....
+docs/features/shopping-cart/design.adoc -> :status: Current  (reconciled)
+....
 
+3. Commit:
++
 ....
 git commit -m "chore(shopping-cart): mark implementation complete
 
-Set tasks and design status to Implemented."
+Set tasks status to Implemented. Reconcile design to reflect what was built."
 ....
 
 Report to the orchestrator that the shopping-cart feature implementation is complete.

@@ -110,7 +110,7 @@ Every capability follows the **observe/evaluate/execute** pattern:
 | Constraints | `constraints.adoc` | Stable, changes rarely |
 | User Stories | `docs/features/<slug>/user-stories.adoc` | Living, versioned per feature |
 | Specifications | `docs/features/<slug>/spec.adoc` | Living, synced with stories |
-| Design | `docs/features/<slug>/design.adoc` | Ephemeral -- stale when stories/specs change |
+| Design | `docs/features/<slug>/design.adoc` | Living, synced with stories and specs |
 | Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- stale when design changes |
 | ADRs | `docs/adrs/NNNN-title.adoc` | Permanent, append-only |
 | Architecture | `docs/architecture.adoc` | Living, reflects current system |

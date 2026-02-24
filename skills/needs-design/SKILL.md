@@ -1,6 +1,6 @@
 ---
 name: needs-design
-description: Create implementation design documents for a feature. Use when the proven-intent orchestrator determines that a feature needs a design created or updated. Operates within a single feature package at docs/features/<slug>/. The design document explains HOW — the implementation blueprint that solves the user stories, constrained by the specs and project-wide ADRs. Each feature design is fully independent and can be implemented without reading other feature designs.
+description: Create and maintain implementation design documents for a feature. Use when the proven-intent orchestrator determines that a feature needs a design created, updated, or synced with upstream changes. Operates within a single feature package at docs/features/<slug>/. The design document is a living document that explains HOW the feature works — the implementation blueprint that solves the user stories, constrained by the specs and project-wide ADRs. It stays in sync with stories and specs throughout the feature's lifecycle. Each feature design is fully independent and can be implemented without reading other feature designs.
 ---
 
 ## Prerequisites
@@ -48,7 +48,7 @@ Return to the orchestrator:
 Feature: <slug>
 Stories: {exists: true, version: "X.Y.Z"}
 Spec: {exists: true/false, version: "X.Y.Z"}
-Design: {exists: true/false, version: "X.Y.Z", status: "Current/Stale/Implemented"}
+Design: {exists: true/false, version: "X.Y.Z", status: "Current/Stale"}
 ADRs: {count: N, accepted: N}
 Constraints: {count: N, architecture: N, quality: N}
 Codebase: {type: "TypeScript/Next.js", existing-patterns: [...]}
@@ -63,9 +63,8 @@ Given the desired state from the orchestrator, determine what action is needed.
 | Condition | Action |
 |---|---|
 | No design exists | Create new design |
-| Design exists, `:status:` is `Implemented` | Previous design cycle complete. Create fresh design (overwrite). |
 | Design exists, source versions match current stories and spec | Design appears current. Report to orchestrator. |
-| Design exists, source versions differ | Design is stale. Determine whether incremental update or full redesign is needed. |
+| Design exists, source versions differ | Design is stale. Sync with upstream changes (incremental update or full redesign). |
 
 ### 2. Check constraints
 
@@ -77,7 +76,7 @@ Given the desired state from the orchestrator, determine what action is needed.
 
 Return to the orchestrator:
 ```
-Action: create / update / redesign / none
+Action: create / sync / none
 Constraint conflicts: [list or none]
 Technology decisions needed: [list or none]
 ```
@@ -211,8 +210,7 @@ Criteria::
 
 **`:status:` values:**
 - `Current` -- design is valid and aligned with stories and specs
-- `Stale` -- upstream stories or specs have changed since this design was created
-- `Implemented` -- design has been fully implemented (set by `needs-implementation`)
+- `Stale` -- upstream stories or specs have changed since this design was created; sync needed
 
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
@@ -224,17 +222,60 @@ Criteria::
 - `docs/features/<slug>/data-model.adoc` -- entity/data model
 - `docs/features/<slug>/contracts/` -- interface contract files
 
-### Incremental update
+### Sync workflow (when design already exists)
 
-When the user chooses to incrementally update (rather than redesign from scratch):
+The design is a living document that stays in sync with stories and specs. When upstream artifacts change, the design is updated to reflect the new reality.
 
-1. **Diff upstream changes:** Compare new stories and specs against the versions recorded in the design. Identify added, modified, and removed stories/specs.
-2. **Preserve stable sections:** Keep design sections unaffected by changes.
-3. **Update affected sections:** Modify design sections impacted by changed stories or specs.
-4. **Remove orphaned sections:** Remove design elements that existed solely for removed stories.
-5. **Update Story Resolution:** Re-map all stories.
-6. **Bump version:** MAJOR if elements removed, MINOR if added/modified, PATCH if metadata only.
-7. **Update source versions:** Set `:source-stories-version:` and `:source-spec-version:` to current. Set `:status:` to `Current`. Update `:last-updated:`.
+#### Quick staleness check
+
+Compare `:source-stories-version:` and `:source-spec-version:` in `design.adoc` against the current versions of `user-stories.adoc` and `spec.adoc`. If versions match, inform the orchestrator that the design appears current.
+
+#### Content-based change analysis
+
+1. Read current stories and specs
+2. Compare against the design's Story Resolution section
+3. Identify:
+   - **New stories/specs** -- not covered by the design
+   - **Modified stories/specs** -- design elements need updating
+   - **Removed stories/specs** -- design elements are orphaned
+
+#### Present change report
+
+```
+Design sync: stories 1.0.0 -> 1.1.0, spec 1.0.0 -> 1.1.0
+
+Added:
+  - US-003 needs new components and story resolution entry
+  - CART-009, CART-010 need design coverage
+
+Modified:
+  - US-001 criteria changed -- CartService logic needs revision
+
+Removed:
+  - US-002 removed -- Cart Page and related design sections orphaned
+
+Sections unaffected: Technical Context, Decisions and Constraints
+```
+
+Ask the user whether to apply incrementally or redesign from scratch.
+
+#### Apply changes
+
+1. **Preserve stable sections:** Keep design sections unaffected by changes.
+2. **Update affected sections:** Modify design sections impacted by changed stories or specs.
+3. **Remove orphaned sections:** Remove design elements that existed solely for removed stories.
+4. **Update Story Resolution:** Re-map all stories, ensuring every current story and spec ID is accounted for.
+5. **Bump version:** MAJOR if elements removed, MINOR if added/modified, PATCH if metadata only.
+6. **Update source versions:** Set `:source-stories-version:` and `:source-spec-version:` to current. Set `:status:` to `Current`. Update `:last-updated:`.
+
+### Post-implementation reconciliation
+
+After `needs-implementation` completes, the design should reflect what was actually built, not just what was planned. If the implementation diverged from the design (e.g., the design described an approach but the implementation took a different one due to practical constraints), the design should be updated to match the implemented reality.
+
+1. Compare design elements against the implemented code
+2. Update any design sections where the implementation diverged
+3. Bump version (PATCH if minor clarifications, MINOR if substantive updates)
+4. Keep `:status:` as `Current` -- the design remains a living document
 
 ## Quality Checklist
 

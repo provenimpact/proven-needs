@@ -43,7 +43,7 @@ Return to the orchestrator:
 ```
 Feature: <slug>
 Tasks: {exists: true/false, status: "Current/Stale/Implemented", progress: "N/M ticked", phases: N}
-Design: {exists: true/false, status: "Current/Stale/Implemented"}
+Design: {exists: true/false, status: "Current/Stale"}
 Implementation: {started: true/false, phases-complete: N, current-phase: N}
 Codebase: {conventions: [...], build-status: pass/fail, test-status: pass/fail}
 ```
@@ -146,7 +146,7 @@ Present options:
 
 **If all phases are complete:**
 1. Set `:status: Implemented` in `docs/features/<slug>/tasks.adoc`
-2. Set `:status: Implemented` in `docs/features/<slug>/design.adoc` (if it exists)
+2. Reconcile the design: compare what was actually implemented against the design. If the implementation diverged from the design in any way, update the design to reflect what was built (the design is a living document that must stay accurate). Bump the design version (PATCH for minor clarifications, MINOR for substantive updates). Keep design `:status:` as `Current`.
 3. Update `:last-updated:` to today's date in all updated files
 4. Commit these status updates
 5. Report to the orchestrator that implementation is complete
@@ -170,9 +170,9 @@ When implementing directly from the design without a task list:
 5. **Ask to continue** after each story.
 
 6. **When all stories are implemented:**
-   a. Set `:status: Implemented` in the feature's `design.adoc`
+   a. Reconcile the design: update the feature's `design.adoc` to reflect what was actually built if the implementation diverged. Bump version if updated. Keep `:status:` as `Current`.
    b. Update `:last-updated:`
-   c. Commit the status update
+   c. Commit any updates
    d. Report to the orchestrator
 
 **Note:** No `tasks.adoc` is created in this flow. Progress is tracked via commits.
