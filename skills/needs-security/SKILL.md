@@ -97,6 +97,32 @@ Dependency actions: [delegate to needs-dependencies]
 
 ## Execute
 
+```mermaid
+flowchart TD
+    OBS["Observe:\nvuln scan + code patterns\n+ config review"] --> PRIORITIZE["Prioritize\nby severity"]
+
+    PRIORITIZE --> CRIT["Critical\n→ immediate action"]
+    PRIORITIZE --> HI["High\n→ action required"]
+    PRIORITIZE --> MED["Medium\n→ recommended"]
+    PRIORITIZE --> LO["Low\n→ advisory"]
+
+    CRIT --> REMEDIATE
+    HI --> REMEDIATE
+    MED --> REMEDIATE
+
+    REMEDIATE{"Remediation\ntype?"}
+    REMEDIATE -->|"Dependency\nvulnerability"| DEPS["Delegate to\nneeds-dependencies"]
+    REMEDIATE -->|"Code\nanti-pattern"| CODE["Fix code\n(secrets, injection,\nvalidation, crypto)"]
+    REMEDIATE -->|"Configuration\nissue"| CONFIG["Apply secure\nconfiguration"]
+
+    DEPS --> VERIFY["Verify:\nre-scan + build + test"]
+    CODE --> VERIFY
+    CONFIG --> VERIFY
+
+    VERIFY -->|Pass| DONE["Report results"]
+    VERIFY -->|Fail| FIX["Fix issues"] --> VERIFY
+```
+
 ### 1. Dependency remediations
 
 For dependency vulnerabilities, delegate to the `needs-dependencies` capability via the orchestrator. This skill focuses on code and configuration remediations.

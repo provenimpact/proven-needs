@@ -80,6 +80,27 @@ Constraint requirements: [testing, coverage threshold, architecture rules]
 
 ## Execute
 
+```mermaid
+flowchart TD
+    START["Start implementation"] --> PHASE["Phase N"]
+
+    subgraph loop ["Per-phase loop"]
+        PHASE --> TODO["1. Build phase\ntodo list"]
+        TODO --> IMPL["2. Implement tasks\n(sequential / parallel)"]
+        IMPL --> VERIFY{"3. Verify\n(build / lint / test)"}
+        VERIFY -->|Fail| FIX["Fix issues"] --> VERIFY
+        VERIFY -->|Pass| COMMIT["4. Commit phase"]
+        COMMIT --> MORE{"More\nphases?"}
+        MORE -->|"Yes (user: continue)"| NEXT["Next phase"] --> TODO
+    end
+
+    MORE -->|"No / user: stop"| FINAL{"All phases\ncomplete?"}
+    FINAL -->|No| SAVE["Save progress\nin tasks.adoc"]
+    FINAL -->|Yes| MARK["Mark status:\nImplemented"]
+    MARK --> DIVERGE["Detect design\ndivergences"]
+    DIVERGE --> REPORT["Report to\norchestrator"]
+```
+
 ### Phase-by-phase implementation (from task list)
 
 Steps 1--5 repeat for each phase.

@@ -90,6 +90,28 @@ Constraint requirements: [coverage threshold, test type requirements]
 
 ## Execute
 
+```mermaid
+flowchart TD
+    SPEC["spec.adoc\nrequirements"] --> TYPE{"EARS\ntype?"}
+
+    TYPE -->|Ubiquitous| T1["Unconditional assertions\n(test across states,\non load, after nav)"]
+    TYPE -->|Event-driven| T2["Trigger event → assert response\n(valid + invalid triggers)"]
+    TYPE -->|State-driven| T3["Enter state → assert behavior\n(test entry/exit boundaries)"]
+    TYPE -->|Unwanted| T4["Trigger error → assert\nrecovery/handling"]
+    TYPE -->|Optional| T5["Enable → assert present\nDisable → assert absent"]
+
+    T1 --> LEVEL
+    T2 --> LEVEL
+    T3 --> LEVEL
+    T4 --> LEVEL
+    T5 --> LEVEL
+
+    LEVEL{"Test level\n(from design)"}
+    LEVEL -->|"Single component,\nclear I/O"| UNIT["Unit test"]
+    LEVEL -->|"Multiple components\nor persistence"| INTEG["Integration test"]
+    LEVEL -->|"Full user journey\nor UI interaction"| E2E["End-to-end test"]
+```
+
 ### Derive test cases from specifications
 
 For each requirement in `spec.adoc` that needs a test:

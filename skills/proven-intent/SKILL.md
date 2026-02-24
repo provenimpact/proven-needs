@@ -169,6 +169,19 @@ Classify the desired state into one or more intent types:
 | **Quality improvement** | References tests, coverage, code quality | "All API endpoints have integration tests" |
 | **Documentation** | References docs, architecture document | "Architecture doc reflects current system" |
 
+```mermaid
+flowchart TD
+    INPUT["User intent"] --> SIGNALS{"Analyze\nsignals"}
+
+    SIGNALS -->|"User journey,\nuser-facing capability"| FEAT["Feature evolution"]
+    SIGNALS -->|"Universal quantifiers,\nsystem-as-subject"| CONST["Constraint declaration"]
+    SIGNALS -->|"References artifacts,\nsync/update language"| ART["Artifact maintenance"]
+    SIGNALS -->|"References packages,\nvulnerabilities"| DEP["Dependency maintenance"]
+    SIGNALS -->|"System structure,\ntechnology changes"| ARCH["Architecture evolution"]
+    SIGNALS -->|"Tests, coverage,\ncode quality"| QUAL["Quality improvement"]
+    SIGNALS -->|"References docs,\narchitecture document"| DOC["Documentation"]
+```
+
 #### 2.2 Constraint detection
 
 Before proceeding with feature decomposition, check whether the intent is actually a constraint. An intent is a constraint if:
@@ -177,6 +190,23 @@ Before proceeding with feature decomposition, check whether the intent is actual
 2. **System-as-subject** -- it describes a property of the system, not a capability for a user
 3. **No user journey** -- there is no identifiable user role, action, or benefit
 4. **Future-proof** -- it would apply to features that don't exist yet
+
+```mermaid
+flowchart TD
+    INTENT["Intent statement"] --> Q1{"Universal scope?\n(all, every, never)"}
+
+    Q1 -->|Yes| Q2{"System-as-subject?\n(property of system,\nnot user capability)"}
+    Q1 -->|No| FEATURE["Feature requirement"]
+
+    Q2 -->|Yes| Q3{"No user journey?\n(no role, action,\nor benefit)"}
+    Q2 -->|No| FEATURE
+
+    Q3 -->|Yes| Q4{"Future-proof?\n(applies to features\nthat don't exist yet)"}
+    Q3 -->|No| ASK["Ask user:\nconstraint or\nfeature requirement?"]
+
+    Q4 -->|Yes| CONSTRAINT["Constraint\n→ add to constraints.adoc"]
+    Q4 -->|No| ASK
+```
 
 If the intent is a constraint:
 - Propose adding it to `constraints.adoc` with the appropriate category
@@ -488,6 +518,29 @@ Append to `docs/state-log.adoc`. See the State Log section for format.
 
 ## Risk Classification and Auto-Approve
 
+```mermaid
+flowchart TD
+    CHANGE["Proposed transition"] --> FACTORS["Assess risk factors"]
+
+    FACTORS --> SCOPE{"Scope:\nartifacts/files\naffected?"}
+    FACTORS --> PROX{"Constraint\nproximity?"}
+    FACTORS --> REV{"Reversibility?"}
+    FACTORS --> CODE{"Code\nimpact?"}
+
+    SCOPE --> CLASSIFY{"Risk\nclassification"}
+    PROX --> CLASSIFY
+    REV --> CLASSIFY
+    CODE --> CLASSIFY
+
+    CLASSIFY -->|"Patch deps, doc fixes,\nmetadata, sync unchanged"| LOW["Low risk"]
+    CLASSIFY -->|"Minor deps, design adjust,\nadd specs for existing stories"| MED["Medium risk"]
+    CLASSIFY -->|"New features, breaking changes,\narch changes, major bumps, code"| HIGH["High risk"]
+
+    LOW --> AUTO["Auto-approve:\nexecute immediately"]
+    MED --> PROPOSE["Propose with summary,\nask user"]
+    HIGH --> REQUIRE["Full plan,\nrequire approval"]
+```
+
 Transitions are classified by risk level:
 
 | Risk Level | Auto-approve? | Criteria |
@@ -738,6 +791,23 @@ Feature specifications describe only externally observable behavior. Internal ar
 ## Bootstrap
 
 When this skill is loaded, **immediately** check the project's `AGENTS.md` for the proven-intent workflow marker.
+
+```mermaid
+flowchart TD
+    START["Read AGENTS.md"] --> EXISTS{"File\nexists?"}
+
+    EXISTS -->|No| APPEND["Append proven-intent\nblock to new file"]
+    EXISTS -->|Yes| MARKER{"proven-intent\nmarker found?"}
+
+    MARKER -->|Yes| DONE["Do nothing\n(already bootstrapped)"]
+    MARKER -->|No| LEGACY{"Legacy\nproven-needs\nmarker found?"}
+
+    LEGACY -->|Yes| REPLACE["Replace proven-needs\nblock with\nproven-intent block"]
+    LEGACY -->|No| APPEND
+
+    REPLACE --> INFORM["Inform user\nAGENTS.md updated"]
+    APPEND --> INFORM
+```
 
 ### Steps
 

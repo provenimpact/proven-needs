@@ -56,6 +56,29 @@ Each clause in a combined EARS requirement (Where, While, When) implies a sub-fu
 
 ## Choosing a Pattern
 
+```mermaid
+flowchart TD
+    REQ["Requirement"] --> Q1{"Always true?\n(no trigger,\nno condition)"}
+
+    Q1 -->|Yes| UBIQ["Ubiquitous\n'The system shall...'"]
+    Q1 -->|No| Q2{"Triggered by\nan event?"}
+
+    Q2 -->|Yes| Q2b{"Also needs\npreconditions?"}
+    Q2 -->|No| Q3{"Depends on\na state/mode?"}
+
+    Q2b -->|Yes| COMPLEX["Complex\n'Where... While... When...'"]
+    Q2b -->|No| EVENT["Event-driven\n'When <event>,\nthe system shall...'"]
+
+    Q3 -->|Yes| STATE["State-driven\n'While <state>,\nthe system shall...'"]
+    Q3 -->|No| Q4{"Feature-\ndependent?"}
+
+    Q4 -->|Yes| OPTIONAL["Optional feature\n'Where <feature enabled>,\nthe system shall...'"]
+    Q4 -->|No| Q5{"Error / failure\nhandling?"}
+
+    Q5 -->|Yes| UNWANTED["Unwanted behavior\n'If <condition>,\nthen the system shall...'"]
+    Q5 -->|No| UBIQ
+```
+
 - Always true -> Ubiquitous
 - Triggered by an event -> Event-driven
 - Depends on a state/mode -> State-driven

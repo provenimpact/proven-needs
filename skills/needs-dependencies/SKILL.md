@@ -100,6 +100,27 @@ Constraint risks: [which constraints might be affected]
 
 ## Execute
 
+```mermaid
+flowchart TD
+    UPDATES["Proposed updates"] --> TYPE{"Update\ntype?"}
+
+    TYPE -->|"Patch (x.y.Z)"| LOW["Low risk\n→ auto-approve"]
+    TYPE -->|"Minor (x.Y.z)"| MED["Medium risk\n→ approve if tests pass"]
+    TYPE -->|"Major (X.y.z)"| HIGH["High risk\n→ require user approval"]
+    TYPE -->|"Replacement\n(different package)"| HIGH
+
+    LOW --> APPLY["Apply update"]
+    MED --> APPLY
+    HIGH -->|Approved| APPLY
+
+    APPLY --> VERIFY{"Verify\n(build / lint / test)"}
+    VERIFY -->|Pass| RECHECK["Re-check constraints\n(vuln audit, licenses)"]
+    VERIFY -->|Fail| ROLLBACK["Roll back\nproblematic update"]
+    ROLLBACK --> REPORT["Report failure"]
+
+    RECHECK --> DONE["Report results"]
+```
+
 ### 1. Apply updates
 
 For each approved update:

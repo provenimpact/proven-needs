@@ -83,6 +83,41 @@ Technology decisions needed: [list or none]
 
 ## Execute
 
+```mermaid
+flowchart TD
+    START["Execute design"] --> P0["Phase 0: Research"]
+
+    subgraph phase0 ["Phase 0 — Research and Decisions"]
+        P0 --> TECH["Identify technology\ndecisions needed"]
+        P0 --> UNKN["Identify unknowns\nand dependencies"]
+        P0 --> EXIST["Analyze existing\nsystem (if non-greenfield)"]
+
+        TECH --> ADR{"ADR exists\nfor decision?"}
+        ADR -->|Yes| REUSE["Reuse existing ADR"]
+        ADR -->|No| CREATE["Create ADR\n(via needs-adr)"]
+
+        UNKN --> RESOLVE["Resolve unknowns\nwith user"]
+    end
+
+    REUSE --> P1
+    CREATE --> P1
+    RESOLVE --> P1
+    EXIST --> P1
+
+    P1["Phase 1: Design"]
+    subgraph phase1 ["Phase 1 — Design"]
+        P1 --> SYS["System design\n+ Mermaid diagrams"]
+        P1 --> DATA["Data model\n(if applicable)"]
+        P1 --> IFACE["Interface contracts\n(if applicable)"]
+        P1 --> STORY["Story resolution\n(map stories → design)"]
+    end
+
+    SYS --> WRITE["Write design files"]
+    DATA --> WRITE
+    IFACE --> WRITE
+    STORY --> WRITE
+```
+
 ### Phase 0: Research and Decisions
 
 Analyze all user stories and specs (if available) to identify:
@@ -237,6 +272,29 @@ Criteria::
 ### Sync workflow (when design already exists)
 
 The design is a living document that stays in sync with stories and specs. When upstream artifacts change, the design is updated to reflect the new reality.
+
+```mermaid
+flowchart TD
+    START["Sync triggered"] --> STALE{"Quick staleness check:\nsource versions ≠\ncurrent versions?"}
+
+    STALE -->|No| CURRENT["Design appears current\n→ report to orchestrator"]
+    STALE -->|Yes| DIFF["Content-based\nchange analysis"]
+
+    DIFF --> NEW["New stories/specs\n→ need design coverage"]
+    DIFF --> MOD["Modified stories/specs\n→ update design sections"]
+    DIFF --> REM["Removed stories/specs\n→ orphaned design sections"]
+
+    NEW --> REPORT["Present change\nreport to user"]
+    MOD --> REPORT
+    REM --> REPORT
+
+    REPORT --> DECIDE{"User decides"}
+    DECIDE -->|Incremental| INCR["Apply incremental\nupdates"]
+    DECIDE -->|Full redesign| FULL["Redesign from\nscratch"]
+
+    INCR --> BUMP["Version bump\n+ update source versions\n+ set status: Current"]
+    FULL --> BUMP
+```
 
 #### Quick staleness check
 
