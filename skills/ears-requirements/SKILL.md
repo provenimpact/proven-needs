@@ -58,24 +58,24 @@ Each clause in a combined EARS requirement (Where, While, When) implies a sub-fu
 
 ```mermaid
 flowchart TD
-    REQ["Requirement"] --> Q1{"Always true?\n(no trigger,\nno condition)"}
+    REQ["Requirement"] --> Q1{"Always true?<br/>(no trigger,<br/>no condition)"}
 
-    Q1 -->|Yes| UBIQ["Ubiquitous\n'The system shall...'"]
-    Q1 -->|No| Q2{"Triggered by\nan event?"}
+    Q1 -->|Yes| UBIQ["Ubiquitous<br/>'The system shall...'"]
+    Q1 -->|No| Q2{"Triggered by<br/>an event?"}
 
-    Q2 -->|Yes| Q2b{"Also needs\npreconditions?"}
-    Q2 -->|No| Q3{"Depends on\na state/mode?"}
+    Q2 -->|Yes| Q2b{"Also needs<br/>preconditions?"}
+    Q2 -->|No| Q3{"Depends on<br/>a state/mode?"}
 
-    Q2b -->|Yes| COMPLEX["Complex\n'Where... While... When...'"]
-    Q2b -->|No| EVENT["Event-driven\n'When <event>,\nthe system shall...'"]
+    Q2b -->|Yes| COMPLEX["Complex<br/>'Where... While... When...'"]
+    Q2b -->|No| EVENT["Event-driven<br/>'When &lt;event&gt;,<br/>the system shall...'"]
 
-    Q3 -->|Yes| STATE["State-driven\n'While <state>,\nthe system shall...'"]
-    Q3 -->|No| Q4{"Feature-\ndependent?"}
+    Q3 -->|Yes| STATE["State-driven<br/>'While &lt;state&gt;,<br/>the system shall...'"]
+    Q3 -->|No| Q4{"Feature-<br/>dependent?"}
 
-    Q4 -->|Yes| OPTIONAL["Optional feature\n'Where <feature enabled>,\nthe system shall...'"]
-    Q4 -->|No| Q5{"Error / failure\nhandling?"}
+    Q4 -->|Yes| OPTIONAL["Optional feature<br/>'Where &lt;feature enabled&gt;,<br/>the system shall...'"]
+    Q4 -->|No| Q5{"Error / failure<br/>handling?"}
 
-    Q5 -->|Yes| UNWANTED["Unwanted behavior\n'If <condition>,\nthen the system shall...'"]
+    Q5 -->|Yes| UNWANTED["Unwanted behavior<br/>'If &lt;condition&gt;,<br/>then the system shall...'"]
     Q5 -->|No| UBIQ
 ```
 
