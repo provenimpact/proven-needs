@@ -117,70 +117,137 @@ Independent features can be processed concurrently.
 Each capability reads upstream artifacts and writes its own. The diagram below shows the data flow -- which artifacts each capability consumes and produces.
 
 ```mermaid
-flowchart LR
-    subgraph artifacts ["Artifacts"]
-        CONST[("constraints.adoc")]
-        STORIES[("user-stories.adoc")]
-        SPEC[("spec.adoc")]
-        DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
-        TASKS[("tasks.adoc")]
-        CODE[("source code")]
-        TESTFILES[("test files")]
-        ADRS[("docs/adrs/")]
-        ARCH[("architecture.adoc")]
-        DEPS[("package manifests<br/>lockfiles")]
-        STATELOG[("state-log.adoc")]
+flowchart TB
+    %% ── constraints (read by almost every capability) ──────────
+    CONST[("constraints.adoc")]
+
+    %% ── Feature pipeline (left → right) ───────────────────────
+    subgraph feature ["Feature Pipeline"]
+        direction LR
+
+        subgraph s1 [" "]
+            NS["needs-stories"]
+            STORIES[("user-stories.adoc")]
+        end
+
+        subgraph s2 [" "]
+            NSP["needs-spec"]
+            SPEC[("spec.adoc")]
+        end
+
+        subgraph s3 [" "]
+            NADR["needs-adr"]
+            ADRS[("docs/adrs/")]
+        end
+
+        subgraph s4 [" "]
+            ND["needs-design"]
+            DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
+        end
+
+        subgraph s5 [" "]
+            NT["needs-tasks"]
+            TASKS[("tasks.adoc")]
+        end
+
+        subgraph s6 [" "]
+            NI["needs-implementation"]
+            CODE[("source code")]
+        end
+
+        subgraph s7 [" "]
+            NTS["needs-tests"]
+            TESTFILES[("test files")]
+        end
     end
 
-    NS["needs-stories"] -->|writes| STORIES
-    CONST -.->|reads| NS
+    %% ── Project-wide capabilities ─────────────────────────────
+    subgraph project ["Project-wide"]
+        direction LR
 
-    NSP["needs-spec"] -->|writes| SPEC
+        subgraph p1 [" "]
+            NARCH["needs-architecture"]
+            ARCH[("architecture.adoc")]
+        end
+
+        subgraph p2 [" "]
+            NDEPS["needs-dependencies"]
+            DEPS[("package manifests<br/>lockfiles")]
+        end
+
+        subgraph p3 [" "]
+            NSEC["needs-security"]
+        end
+
+        subgraph p4 [" "]
+            NCOMP["needs-compliance"]
+        end
+    end
+
+    STATELOG[("state-log.adoc")]
+
+    %% ── Writes ────────────────────────────────────────────────
+    NS -->|writes| STORIES
+    NSP -->|writes| SPEC
+    NADR -->|writes| ADRS
+    ND -->|writes| DESIGN
+    NT -->|writes| TASKS
+    NI -->|writes| CODE
+    NTS -->|writes| TESTFILES
+    NARCH -->|writes| ARCH
+    NDEPS -->|writes| DEPS
+    NSEC -->|writes| CODE
+    NCOMP -->|writes| DEPS
+
+    %% ── Feature pipeline reads (solid = primary) ──────────────
     STORIES -->|reads| NSP
-    CONST -.->|reads| NSP
-
-    ND["needs-design"] -->|writes| DESIGN
     STORIES -->|reads| ND
     SPEC -->|reads| ND
-    ADRS -.->|reads| ND
-    CONST -.->|reads| ND
-
-    NT["needs-tasks"] -->|writes| TASKS
-    DESIGN -->|reads| NT
-    STORIES -.->|fallback| NT
-
-    NI["needs-implementation"] -->|writes| CODE
-    TASKS -->|reads| NI
-    DESIGN -.->|fallback| NI
-
-    NTS["needs-tests"] -->|writes| TESTFILES
     SPEC -->|reads| NTS
+    DESIGN -->|reads| NT
+    TASKS -->|reads| NI
+
+    %% ── Feature pipeline reads (dashed = fallback / optional) ─
+    STORIES -.->|fallback| NT
+    DESIGN -.->|fallback| NI
     DESIGN -.->|reads| NTS
     CODE -.->|reads| NTS
+    ADRS -.->|reads| ND
 
-    NADR["needs-adr"] -->|writes| ADRS
-
-    NARCH["needs-architecture"] -->|writes| ARCH
+    %% ── Project-wide reads ────────────────────────────────────
     DESIGN -.->|reads| NARCH
     ADRS -.->|reads| NARCH
-    CONST -.->|reads| NARCH
     CODE -.->|reads| NARCH
-
-    NDEPS["needs-dependencies"] -->|writes| DEPS
     DEPS -->|reads| NDEPS
-    CONST -.->|reads| NDEPS
-
-    NSEC["needs-security"] -->|writes| CODE
     CODE -->|reads| NSEC
     DEPS -.->|reads| NSEC
-    CONST -.->|reads| NSEC
-
-    NCOMP["needs-compliance"] -->|writes| DEPS
     DEPS -->|reads| NCOMP
+
+    %% ── Constraints reads (dashed — applies to most caps) ─────
+    CONST -.->|reads| NS
+    CONST -.->|reads| NSP
+    CONST -.->|reads| ND
+    CONST -.->|reads| NARCH
+    CONST -.->|reads| NDEPS
+    CONST -.->|reads| NSEC
     CONST -.->|reads| NCOMP
 
+    %% ── Styles ────────────────────────────────────────────────
     style CONST fill:#FF9800,color:#fff,stroke:none
     style STATELOG fill:#2196F3,color:#fff,stroke:none
+    style feature fill:transparent,stroke:#555,stroke-width:1px
+    style project fill:transparent,stroke:#555,stroke-width:1px
+    style s1 fill:transparent,stroke:none
+    style s2 fill:transparent,stroke:none
+    style s3 fill:transparent,stroke:none
+    style s4 fill:transparent,stroke:none
+    style s5 fill:transparent,stroke:none
+    style s6 fill:transparent,stroke:none
+    style s7 fill:transparent,stroke:none
+    style p1 fill:transparent,stroke:none
+    style p2 fill:transparent,stroke:none
+    style p3 fill:transparent,stroke:none
+    style p4 fill:transparent,stroke:none
 ```
 
 | Capability | Reads | Writes |
