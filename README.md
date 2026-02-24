@@ -114,92 +114,67 @@ Independent features can be processed concurrently.
 
 ### Artifact Traceability
 
-Each capability reads upstream artifacts and writes its own. The diagram below shows the data flow -- which artifacts each capability consumes and produces.
+Each capability reads upstream artifacts and writes its own. The two diagrams below separate ownership (writes) from dependencies (reads) for clarity.
+
+#### Artifact Ownership (writes)
+
+Each capability owns and produces specific artifacts. `state-log.adoc` is managed by the orchestrator.
 
 ```mermaid
-flowchart TB
-    %% ── constraints (read by almost every capability) ──────────
-    CONST[("constraints.adoc")]
-
-    %% ── Feature pipeline (left → right) ───────────────────────
+flowchart LR
     subgraph feature ["Feature Pipeline"]
-        direction LR
-
-        subgraph s1 [" "]
-            NS["needs-stories"]
-            STORIES[("user-stories.adoc")]
-        end
-
-        subgraph s2 [" "]
-            NSP["needs-spec"]
-            SPEC[("spec.adoc")]
-        end
-
-        subgraph s3 [" "]
-            NADR["needs-adr"]
-            ADRS[("docs/adrs/")]
-        end
-
-        subgraph s4 [" "]
-            ND["needs-design"]
-            DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
-        end
-
-        subgraph s5 [" "]
-            NT["needs-tasks"]
-            TASKS[("tasks.adoc")]
-        end
-
-        subgraph s6 [" "]
-            NI["needs-implementation"]
-            CODE[("source code")]
-        end
-
-        subgraph s7 [" "]
-            NTS["needs-tests"]
-            TESTFILES[("test files")]
-        end
+        NS["needs-stories"] --> STORIES[("user-stories.adoc")]
+        NSP["needs-spec"] --> SPEC[("spec.adoc")]
+        NADR["needs-adr"] --> ADRS[("docs/adrs/")]
+        ND["needs-design"] --> DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
+        NT["needs-tasks"] --> TASKS[("tasks.adoc")]
+        NI["needs-implementation"] --> CODE[("source code")]
+        NTS["needs-tests"] --> TESTFILES[("test files")]
     end
 
-    %% ── Project-wide capabilities ─────────────────────────────
     subgraph project ["Project-wide"]
-        direction LR
-
-        subgraph p1 [" "]
-            NARCH["needs-architecture"]
-            ARCH[("architecture.adoc")]
-        end
-
-        subgraph p2 [" "]
-            NDEPS["needs-dependencies"]
-            DEPS[("package manifests<br/>lockfiles")]
-        end
-
-        subgraph p3 [" "]
-            NSEC["needs-security"]
-        end
-
-        subgraph p4 [" "]
-            NCOMP["needs-compliance"]
-        end
+        NARCH["needs-architecture"] --> ARCH[("architecture.adoc")]
+        NDEPS["needs-dependencies"] --> DEPS[("package manifests<br/>lockfiles")]
+        NSEC["needs-security"] --> CODE2[("source code")]
+        NCOMP["needs-compliance"] --> DEPS2[("package manifests")]
     end
 
-    STATELOG[("state-log.adoc")]
+    style feature fill:transparent,stroke:#555,stroke-width:1px
+    style project fill:transparent,stroke:#555,stroke-width:1px
+```
 
-    %% ── Writes ────────────────────────────────────────────────
-    NS -->|writes| STORIES
-    NSP -->|writes| SPEC
-    NADR -->|writes| ADRS
-    ND -->|writes| DESIGN
-    NT -->|writes| TASKS
-    NI -->|writes| CODE
-    NTS -->|writes| TESTFILES
-    NARCH -->|writes| ARCH
-    NDEPS -->|writes| DEPS
-    NSEC -->|writes| CODE
-    NCOMP -->|writes| DEPS
+#### Artifact Dependencies (reads)
 
-    %% ── Feature pipeline reads (solid = primary) ──────────────
+Solid lines are primary inputs; dashed lines are fallback or optional inputs. All capabilities also read `constraints.adoc` during their Evaluate phase (omitted for clarity).
+
+```mermaid
+flowchart RL
+    subgraph artifacts ["Artifacts"]
+        STORIES[("user-stories.adoc")]
+        SPEC[("spec.adoc")]
+        ADRS[("docs/adrs/")]
+        DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
+        TASKS[("tasks.adoc")]
+        CODE[("source code")]
+        DEPS[("package manifests<br/>lockfiles")]
+    end
+
+    subgraph feature ["Feature Pipeline"]
+        NSP["needs-spec"]
+        ND["needs-design"]
+        NT["needs-tasks"]
+        NI["needs-implementation"]
+        NTS["needs-tests"]
+    end
+
+    subgraph project ["Project-wide"]
+        NARCH["needs-architecture"]
+        NDEPS["needs-dependencies"]
+        NSEC["needs-security"]
+        NCOMP["needs-compliance"]
+    end
+
+    %% ── Feature reads (solid = primary) ───────────────────────
     STORIES -->|reads| NSP
     STORIES -->|reads| ND
     SPEC -->|reads| ND
@@ -207,7 +182,7 @@ flowchart TB
     DESIGN -->|reads| NT
     TASKS -->|reads| NI
 
-    %% ── Feature pipeline reads (dashed = fallback / optional) ─
+    %% ── Feature reads (dashed = fallback / optional) ──────────
     STORIES -.->|fallback| NT
     DESIGN -.->|fallback| NI
     DESIGN -.->|reads| NTS
@@ -223,31 +198,9 @@ flowchart TB
     DEPS -.->|reads| NSEC
     DEPS -->|reads| NCOMP
 
-    %% ── Constraints reads (dashed — applies to most caps) ─────
-    CONST -.->|reads| NS
-    CONST -.->|reads| NSP
-    CONST -.->|reads| ND
-    CONST -.->|reads| NARCH
-    CONST -.->|reads| NDEPS
-    CONST -.->|reads| NSEC
-    CONST -.->|reads| NCOMP
-
-    %% ── Styles ────────────────────────────────────────────────
-    style CONST fill:#FF9800,color:#fff,stroke:none
-    style STATELOG fill:#2196F3,color:#fff,stroke:none
+    style artifacts fill:transparent,stroke:#555,stroke-width:1px
     style feature fill:transparent,stroke:#555,stroke-width:1px
     style project fill:transparent,stroke:#555,stroke-width:1px
-    style s1 fill:transparent,stroke:none
-    style s2 fill:transparent,stroke:none
-    style s3 fill:transparent,stroke:none
-    style s4 fill:transparent,stroke:none
-    style s5 fill:transparent,stroke:none
-    style s6 fill:transparent,stroke:none
-    style s7 fill:transparent,stroke:none
-    style p1 fill:transparent,stroke:none
-    style p2 fill:transparent,stroke:none
-    style p3 fill:transparent,stroke:none
-    style p4 fill:transparent,stroke:none
 ```
 
 | Capability | Reads | Writes |
