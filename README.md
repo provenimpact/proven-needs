@@ -63,6 +63,7 @@ flowchart LR
         TESTS["needs-tests<br/><i>VERIFY</i>"]
 
         STORIES --> SPEC
+        STORIES --> DESIGN
         SPEC --> DESIGN
         DESIGN --> TASKS
         STORIES -.->|fallback| TASKS
@@ -187,9 +188,9 @@ flowchart LR
 | `needs-stories` | `constraints.adoc` | `user-stories.adoc` |
 | `needs-spec` | `user-stories.adoc`, `constraints.adoc` | `spec.adoc` |
 | `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
-| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback) | `tasks.adoc` |
-| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback) | source code |
-| `needs-tests` | `spec.adoc`, `design.adoc`, source code | test files |
+| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `constraints.adoc` | `tasks.adoc` |
+| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `constraints.adoc`, ADRs | source code |
+| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc`, source code | test files |
 | `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
 | `needs-architecture` | all feature designs, ADRs, `constraints.adoc`, codebase | `docs/architecture.adoc` |
 | `needs-dependencies` | package manifests, `constraints.adoc` | package manifests, lockfiles |
