@@ -6,8 +6,36 @@ Declare a **desired state**, evaluate it against **reality** and **constraints**
 
 ## How It Works
 
-```
-Observe → Declare → Evaluate → Derive → Execute → Validate → Repeat
+```mermaid
+flowchart TD
+    START((User declares<br/>desired state)) --> OBSERVE
+
+    subgraph LOOP ["State Transition Loop"]
+        OBSERVE["1. Observe<br/><i>Capture current state:<br/>artifacts, codebase, deps, security</i>"]
+        DECLARE["2. Declare<br/><i>Classify intent &amp; decompose<br/>into features</i>"]
+        EVALUATE["3. Evaluate<br/><i>Check feasibility, constraints,<br/>staleness</i>"]
+        DERIVE["4. Derive<br/><i>Build minimal transition plan<br/>from capability graph</i>"]
+        EXECUTE["5. Execute<br/><i>Invoke capabilities in<br/>dependency order</i>"]
+        VALIDATE["6. Validate<br/><i>Verify desired state is true,<br/>constraints hold</i>"]
+
+        OBSERVE --> DECLARE
+        DECLARE --> EVALUATE
+        EVALUATE -->|Feasible| DERIVE
+        EVALUATE -->|Violation| BLOCK
+        DERIVE --> EXECUTE
+        EXECUTE --> VALIDATE
+        VALIDATE -->|Achieved| LOG
+        VALIDATE -->|Not achieved| OBSERVE
+    end
+
+    BLOCK["Constraint Violation<br/><i>Revise, update constraint,<br/>or abort</i>"] -->|Revised| EVALUATE
+    LOG["Record in<br/>state-log.adoc"] --> NEXT
+    NEXT((Declare next<br/>desired state)) --> OBSERVE
+
+    style START fill:#4CAF50,color:#fff,stroke:none
+    style NEXT fill:#4CAF50,color:#fff,stroke:none
+    style BLOCK fill:#f44336,color:#fff,stroke:none
+    style LOG fill:#2196F3,color:#fff,stroke:none
 ```
 
 1. **Observe** current state (artifacts, codebase, dependencies, security posture)
@@ -18,6 +46,64 @@ Observe → Declare → Evaluate → Derive → Execute → Validate → Repeat
 6. **Validate** the desired state is now true
 
 The system figures out what needs to happen. You declare what must be true.
+
+### Capability Invocation
+
+During the **Execute** phase, the orchestrator invokes capabilities in dependency order. The pipeline is not rigid -- the orchestrator derives what is needed dynamically and can skip steps whose artifacts are already current.
+
+```mermaid
+flowchart LR
+    subgraph feature ["Feature Pipeline (per feature package)"]
+        direction LR
+        STORIES["needs-stories<br/><i>WHY</i>"]
+        SPEC["needs-spec<br/><i>WHAT</i>"]
+        DESIGN["needs-design<br/><i>HOW</i>"]
+        TASKS["needs-tasks<br/><i>WORK</i>"]
+        IMPL["needs-implementation<br/><i>CODE</i>"]
+
+        STORIES --> SPEC
+        STORIES --> DESIGN
+        SPEC -.->|optional| DESIGN
+        DESIGN --> TASKS
+        STORIES -.->|fallback| TASKS
+        TASKS --> IMPL
+        DESIGN -.->|fallback| IMPL
+    end
+
+    subgraph project ["Project-Wide (independent)"]
+        direction LR
+        ADR["needs-adr"]
+        ARCH["needs-architecture"]
+        DEPS["needs-dependencies"]
+        SEC["needs-security"]
+        COMP["needs-compliance"]
+    end
+
+    INTENT((Orchestrator<br/>proven-intent)) --> feature
+    INTENT --> project
+
+    DESIGN -.->|tech decisions| ADR
+    SEC -.->|delegates fixes| DEPS
+    IMPL -.->|reconciles| DESIGN
+
+    CONSTRAINTS[("constraints.adoc<br/><i>Checked at every step</i>")] -.->|enforced| feature
+    CONSTRAINTS -.->|enforced| project
+
+    style INTENT fill:#4CAF50,color:#fff,stroke:none
+    style CONSTRAINTS fill:#FF9800,color:#fff,stroke:none
+```
+
+**Key relationships:**
+- **Solid arrows** = primary dependency (required upstream artifact)
+- **Dotted arrows** = optional or fallback paths
+- `needs-design` requires stories but spec is optional (proceeds with `:source-spec-version: n/a`)
+- `needs-tasks` prefers design but can derive tasks directly from stories
+- `needs-implementation` prefers tasks but can work story-by-story from design alone
+- `needs-design` can trigger `needs-adr` creation for technology decisions (lateral invocation)
+- `needs-security` delegates dependency vulnerability fixes to `needs-dependencies`
+- `needs-implementation` reconciles `design.adoc` post-completion to reflect what was actually built
+
+Independent features can be processed concurrently.
 
 ## Entry Point
 
