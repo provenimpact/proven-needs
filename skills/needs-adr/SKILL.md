@@ -1,42 +1,80 @@
 ---
 name: needs-adr
-description: Create and manage Architecture Decision Records (ADRs) in docs/adrs/. Use when asked to record a technical decision, document a technology choice, create an ADR, list or review existing decisions, update or supersede a decision, or when the needs-design skill identifies decisions that need recording.
+description: Create and manage Architecture Decision Records (ADRs). Use when the proven-intent orchestrator identifies technology decisions that need recording, or when explicitly asked to record a decision. Operates at the project level in docs/adrs/. ADRs are permanent, append-only records referenced by feature designs across all feature packages.
 ---
 
 ## Prerequisites
 
-Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+This skill is invoked by the `proven-intent` orchestrator or by the `needs-design` capability when technology decisions are identified during the design process.
 
-## Workflow
+## Observe
 
-Creating and managing ADRs involves these steps:
+Assess the current state of architecture decisions.
 
-1. Read existing ADRs
-2. Gather decision context
-3. Write the ADR file
-4. Update the index
-
-### 1. Read Existing ADRs
+### 1. Read existing ADRs
 
 Look for `docs/adrs/` and `docs/adrs/index.adoc`.
 
-**If the directory exists:** Read `index.adoc` to understand existing decisions and determine the next sequence number.
-**If no directory exists:** Create `docs/adrs/` and start numbering at `0001`.
+**If the directory exists:** Read `index.adoc` to understand existing decisions. Extract:
+- All ADR numbers, titles, statuses, and dates
+- The next available sequence number
 
-### 2. Gather Decision Context
+**If no directory exists:** Note that no ADRs exist. Next number is `0001`.
+
+### 2. Read constraints
+
+Read `constraints.adoc` from the project root. Identify constraints that may be relevant to the decision (architecture constraints, licensing constraints for technology choices).
+
+### 3. Report observation
+
+Return to the orchestrator:
+```
+ADRs: {exists: true/false, count: N, accepted: N, deprecated: N, superseded: N, next-number: "NNNN"}
+```
+
+## Evaluate
+
+Given the desired state (a technology decision that needs recording), determine what action is needed.
+
+### 1. Is this decision already recorded?
+
+- Search existing ADRs for decisions covering the same topic
+- If an accepted ADR already covers this decision → no action needed (report to orchestrator)
+- If an accepted ADR exists but the decision has changed → supersession needed
+- If no ADR covers this topic → new ADR needed
+
+### 2. Check constraints
+
+- Would the proposed technology decision violate any constraint? (e.g., licensing constraint for a dependency choice)
+- Flag constraint conflicts to the orchestrator
+
+### 3. Report evaluation
+
+Return to the orchestrator:
+```
+Action: create / supersede / none
+Existing related ADR: ADR-NNNN (if applicable)
+Constraint conflicts: [list or none]
+```
+
+## Execute
+
+### Creating a new ADR
+
+#### 1. Gather decision context
 
 For each decision, identify:
 - **Context** -- what is the issue motivating this decision?
 - **Decision** -- what is the chosen approach?
 - **Consequences** -- what becomes easier or harder?
-- **Alternatives considered** -- what other options were evaluated and why were they rejected?
+- **Alternatives considered** -- what other options were evaluated and why rejected?
 
-**When invoked standalone:** Ask the user for this information.
-**When invoked from `needs-design`:** The design skill provides the context and asks the user to confirm the decision.
+**When invoked by the orchestrator standalone:** Ask the user for this information.
+**When invoked from `needs-design`:** The design capability provides the context and asks the user to confirm.
 
-### 3. Write the ADR File
+#### 2. Write the ADR file
 
-Create `docs/adrs/NNNN-<kebab-case-title>.adoc` using this format:
+Create `docs/adrs/NNNN-<kebab-case-title>.adoc`:
 
 ```asciidoc
 = ADR-NNNN: <Decision Title>
@@ -75,7 +113,7 @@ Create `docs/adrs/NNNN-<kebab-case-title>.adoc` using this format:
 
 **File naming:** `NNNN-kebab-case-title.adoc` (e.g., `0001-use-typescript.adoc`).
 
-### 4. Update the Index
+#### 3. Update the index
 
 Create or update `docs/adrs/index.adoc`:
 
@@ -108,12 +146,14 @@ Create or update `docs/adrs/index.adoc`:
 - MAJOR bumps do not apply since ADRs are never removed
 - Always update `:last-updated:` to today's date
 
-### Updating Existing ADRs
+### Superseding an existing ADR
 
 When a decision changes:
 1. Set the old ADR status to `Superseded by ADR-NNNN`
 2. Create a new ADR referencing the old one in its Context section
 3. Update the index
+
+### Deprecating an ADR
 
 When a decision becomes irrelevant:
 1. Set the ADR status to `Deprecated`

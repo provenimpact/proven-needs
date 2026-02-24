@@ -1,226 +1,180 @@
-= Example: User Stories to Specifications
+= Example: Feature Stories to Feature Specification
 
 :toc:
 
 == Part 1: Initial Creation
 
+=== Context
+
+The orchestrator has decomposed an e-commerce intent into three features. This example shows the specification for the `product-browsing` feature.
+
 === Input
 
-User stories from `user-stories.adoc` (version 1.0.0) for an e-commerce site with Product Browsing (US-001, US-002), Shopping Cart (US-003, US-004), and Checkout (US-005).
+`docs/features/product-browsing/user-stories.adoc` (version 1.0.0) containing:
+- US-001: View Product Catalog (4 criteria)
+- US-002: Search Products (4 criteria)
 
-=== Proposed Categories
+=== Prefix Proposal
 
 ```
-Proposed categories:
-  1. User Interface (UI) - 7 requirements
-  2. Search (SRCH) - 3 requirements
-  3. Cart Management (CART) - 4 requirements
-  4. Checkout (CHK) - 4 requirements
-  5. Error Handling (ERR) - 2 requirements
-  6. Notifications (NOTIF) - 1 requirement
+Proposed prefix for product-browsing: PROD
 
-Add, remove, rename, or merge categories?
+Confirm or suggest alternative?
 ```
 
-=== Output: docs/specs/index.adoc
+=== Output: docs/features/product-browsing/spec.adoc
 
-```asciidoc
-= Specifications
+[source,asciidoc]
+----
+= Specification: Product Browsing
 :version: 1.0.0
 :source-stories-version: 1.0.0
 :last-updated: 2026-02-20
+:feature: product-browsing
+:prefix: PROD
 :toc:
 
-== Categories
-
-* <<ui.adoc#,User Interface (UI)>> -- 7 requirements
-* <<search.adoc#,Search (SRCH)>> -- 3 requirements
-* <<cart-management.adoc#,Cart Management (CART)>> -- 4 requirements
-* <<checkout.adoc#,Checkout (CHK)>> -- 4 requirements
-* <<error-handling.adoc#,Error Handling (ERR)>> -- 2 requirements
-* <<notifications.adoc#,Notifications (NOTIF)>> -- 1 requirement
-
-== Traceability Matrix
-
-[cols="1,2,2", options="header"]
-|===
-| Requirement ID | Requirement Summary | Source
-
-| UI-001
-| Display products in grid or list format
-| US-001: View Product Catalog, Criterion 1
-
-| UI-002
-| Show name, price, and image per product
-| US-001: View Product Catalog, Criterion 2
-
-| UI-003
-| Display add-to-cart button on each product
-| US-003: Add to Cart, Criterion 1
-
-| UI-004
-| Display cart count in the header
-| US-003: Add to Cart, Criterion 2
-
-| UI-005
-| Display success confirmation on add to cart
-| US-003: Add to Cart, Criterion 3
-
-| UI-006
-| Display all cart items with quantities
-| US-004: View Cart, Criterion 1
-
-| UI-007
-| Display item prices and cart total
-| US-004: View Cart, Criterion 2
-
-| SRCH-001
-| Filter products by category
-| US-001: View Product Catalog, Criterion 3
-
-| SRCH-002
-| Sort products by selected attribute
-| US-001: View Product Catalog, Criterion 4
-
-| SRCH-003
-| Search products by keyword
-| US-002: Search Products, Criterion 1, Criterion 2
-
-| CART-001
-| Update cart count when product is added
-| US-003: Add to Cart, Criterion 2
-
-| CART-002
-| Increment quantity for duplicate products
-| US-003: Add to Cart, Criterion 4
-
-| CART-003
-| Update subtotal and total on quantity change
-| US-004: View Cart, Criterion 3
-
-| CART-004
-| Remove item and update total on removal
-| US-004: View Cart, Criterion 4
-
-| CHK-001
-| Display confirmation page on order completion
-| US-005: Checkout Process, Criterion 4
-
-| CHK-002
-| Provide shipping address form
-| US-005: Checkout Process, Criterion 1
-
-| CHK-003
-| Allow payment method selection
-| US-005: Checkout Process, Criterion 2
-
-| CHK-004
-| Display order summary before confirmation
-| US-005: Checkout Process, Criterion 3
-
-| ERR-001
-| Display empty-state message for no search results
-| US-002: Search Products, Criterion 3
-
-| ERR-002
-| Display error and allow retry on payment failure
-| US-005: Checkout Process, Criterion 6
-
-| NOTIF-001
-| Send order confirmation email
-| US-005: Checkout Process, Criterion 5
-|===
-```
-
-=== Output: docs/specs/ui.adoc (excerpt)
-
-```asciidoc
-= User Interface Requirements
-:version: 1.0.0
-:last-updated: 2026-02-20
-:toc:
-
-== UI-001
+== PROD-001
 The system shall display products in a grid or list format.
 
 Type:: Ubiquitous
 Source:: US-001: View Product Catalog, Criterion 1
 Verification:: Navigate to the product listing page. Confirm that products are displayed in a grid or list layout.
 
-== UI-002
+== PROD-002
 The system shall show the name, price, and image for each product in the listing.
 
 Type:: Ubiquitous
 Source:: US-001: View Product Catalog, Criterion 2
 Verification:: View the product listing. Confirm each product displays its name, price, and image.
 
-== UI-003
-The system shall display an add-to-cart button on each product.
+== PROD-003
+When the user selects a category filter, the system shall display only products in that category.
+
+Type:: Event-driven
+Source:: US-001: View Product Catalog, Criterion 3
+Verification:: Select a category filter. Confirm that only products in the selected category are displayed and the count reflects the filter.
+
+== PROD-004
+When the user selects a sort option, the system shall order products by the selected attribute.
+
+Type:: Event-driven
+Source:: US-001: View Product Catalog, Criterion 4
+Verification:: Select a sort option (e.g., price low-to-high). Confirm that products are reordered accordingly.
+
+== PROD-005
+The system shall provide a search input that accepts text queries.
 
 Type:: Ubiquitous
-Source:: US-003: Add to Cart, Criterion 1
-Verification:: View any product in the listing. Confirm an add-to-cart button is visible.
-```
+Source:: US-002: Search Products, Criterion 1
+Verification:: Navigate to the product page. Confirm that a search input field is visible and accepts text.
 
-=== Output: docs/specs/error-handling.adoc
+== PROD-006
+When the user submits a search query, the system shall display matching products.
 
-```asciidoc
-= Error Handling Requirements
-:version: 1.0.0
-:last-updated: 2026-02-20
-:toc:
+Type:: Event-driven
+Source:: US-002: Search Products, Criterion 2
+Verification:: Enter a search term matching known products. Confirm that matching products are displayed.
 
-== ERR-001
+== PROD-007
 When the user submits a search query that matches no products, the system shall display a helpful empty-state message.
 
 Type:: Event-driven
 Source:: US-002: Search Products, Criterion 3
 Verification:: Search for a term that matches no products. Confirm that a message is displayed indicating no results were found.
 
-== ERR-002
-If payment processing fails, then the system shall display an error message and allow the user to retry.
+== PROD-008
+When search results are displayed, the system shall highlight the matching search terms in the results.
 
-Type:: Unwanted behavior
-Source:: US-005: Checkout Process, Criterion 6
-Verification:: Attempt to complete checkout with payment details that cause a failure. Confirm that an error message is displayed and a retry option is available.
-```
+Type:: Event-driven
+Source:: US-002: Search Products, Criterion 4
+Verification:: Search for a term that matches products. Confirm that the search term is visually highlighted in the result text.
+
+== Traceability
+
+[cols="1,2,2", options="header"]
+|===
+| Requirement ID | Requirement Summary | Source
+
+| PROD-001
+| Product display format
+| US-001: Criterion 1
+
+| PROD-002
+| Product details in listing
+| US-001: Criterion 2
+
+| PROD-003
+| Category filtering
+| US-001: Criterion 3
+
+| PROD-004
+| Sort by attribute
+| US-001: Criterion 4
+
+| PROD-005
+| Search input field
+| US-002: Criterion 1
+
+| PROD-006
+| Search result display
+| US-002: Criterion 2
+
+| PROD-007
+| Empty search state
+| US-002: Criterion 3
+
+| PROD-008
+| Search term highlighting
+| US-002: Criterion 4
+|===
+----
 
 == Part 2: Sync Scenario
 
 === Change
 
-User stories updated from version 1.0.0 to 1.1.0. Changes:
-- *New* US-006: Order Tracking added under Checkout feature
+User stories for `product-browsing` updated from version 1.0.0 to 1.1.0:
 - *Modified* US-002, Criterion 2: "display matching products" changed to "display matching products sorted by relevance"
 - *Removed* US-001, Criterion 4: sort option criterion removed
 
 === Change Report
 
 ```
-Spec sync: user-stories 1.0.0 -> 1.1.0
+Spec sync: stories 1.0.0 -> 1.1.0
 
 Added:
-  - ORD-001: The system shall display order status for each placed order.
-  - ORD-002: When the order status changes, the system shall display the updated status.
-  - NOTIF-002: When the order status changes, the system shall send a notification to the user.
+  (none)
 
 Modified:
-  - SRCH-003: Added "sorted by relevance" to search results display
+  - PROD-006: Added "sorted by relevance" to search results display
 
 Removed:
-  - SRCH-002: Source criterion (US-001, Criterion 4: sort option) removed
+  - PROD-004: Source criterion (US-001, Criterion 4: sort option) removed
 
-Categories:
-  - Propose adding "Order Management" (ORD) -- 2 new requirements
-  - No empty categories to remove
-
-No changes to: UI, CART, CHK, ERR
+No changes to: PROD-001, PROD-002, PROD-003, PROD-005, PROD-007, PROD-008
 ```
 
 === Result After Sync
 
-- `index.adoc`: version bumped to 2.0.0 (requirements removed), `:source-stories-version:` updated to 1.1.0
-- `search.adoc`: version bumped to 2.0.0 (SRCH-002 removed, SRCH-003 modified)
-- `order-management.adoc`: created at version 1.0.0 with ORD-001 and ORD-002
-- `notifications.adoc`: version bumped to 1.1.0 (NOTIF-002 added)
-- Traceability matrix updated to reflect all changes
+- `spec.adoc`: version bumped to 2.0.0 (requirement removed), `:source-stories-version:` updated to 1.1.0
+- PROD-004 removed, remaining IDs unchanged (IDs are stable, not renumbered)
+- PROD-006 text updated to include "sorted by relevance"
+- Traceability section updated
+
+== Part 3: Constraint Overlap
+
+=== Scenario
+
+A project-wide constraint exists in `constraints.adoc`:
+
+```
+== Security
+* All user input must be validated before processing.
+```
+
+While deriving specs for the `product-browsing` feature, the criterion "When the user submits a search query, the system shall validate the input" would normally become a spec. Since it duplicates the project-wide constraint, it is not included in the feature spec. Instead:
+
+```asciidoc
+NOTE: Input validation for search queries is enforced by project constraint (Security: "All user input must be validated before processing"). Not duplicated here.
+```

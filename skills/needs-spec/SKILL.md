@@ -1,73 +1,92 @@
 ---
 name: needs-spec
-description: Create and maintain technical specifications with EARS requirements derived from user stories. Use when asked to create specifications, generate requirements from stories, update specs, sync specifications with user stories, or review specification coverage. Reads user-stories.adoc and produces categorized, black-box testable requirement files in docs/specs/.
+description: Create and maintain feature specifications with EARS requirements derived from user stories. Use when the proven-intent orchestrator determines that a feature needs specifications created or synced. Operates within a single feature package at docs/features/<slug>/. Specs define WHAT must be true — black-box testable requirements for externally observable behavior.
 ---
 
 ## Prerequisites
 
-Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
-
 Load the `ears-requirements` skill before writing requirements. It provides the EARS sentence types and templates.
 
-## Workflow
+This skill is invoked by the `proven-intent` orchestrator, which provides the feature context (slug, intent, current state).
 
-Creating and maintaining specifications involves these steps:
+## Observe
 
-1. Read user stories
-2. Check for existing specifications
-3. Analyze and propose categories (ask user)
-4. Derive black-box testable requirements
-5. Write specification files
-6. Sync workflow (when specs already exist)
-7. Quality checklist
+Assess the current state of specifications for this feature.
 
-### 1. Read User Stories
+### 1. Read feature stories
 
-Read `user-stories.adoc` from the project root. Extract:
-- The `:version:` attribute
+Read `docs/features/<slug>/user-stories.adoc`. Extract:
+- `:version:`
 - All stories with their acceptance criteria
-- Feature groupings
 
-**If the file does not exist:** Stop and inform the user that user stories must be created first using the `needs-user-story` skill.
+**If the file does not exist:** Report to the orchestrator that stories are missing. The orchestrator decides whether to create them first.
 
-**If `:version:` is missing:** Inform the user that their `user-stories.adoc` needs version metadata. Instruct them to run the `needs-user-story` skill to add it, or ask if they want to proceed treating the current content as version `1.0.0`.
+### 2. Read existing spec
 
-### 2. Check for Existing Specifications
+If `docs/features/<slug>/spec.adoc` exists:
+- Read `:version:`, `:source-stories-version:`, `:last-updated:`
+- Extract all requirement IDs, texts, types, sources, and verifications
+- Count total requirements
 
-Look for `docs/specs/` directory and `docs/specs/index.adoc`.
+### 3. Read constraints
 
-**If specs exist:** Follow the "Sync Workflow" (step 6).
-**If no specs exist:** Continue with steps 3-5 to create initial specifications.
+Read `constraints.adoc` from the project root. Identify constraints that overlap with this feature's domain -- these do not need to be duplicated as specs.
 
-### 3. Analyze and Propose Categories
+### 4. Report observation
 
-Analyze all user stories and acceptance criteria to identify natural requirement categories. Categories group requirements by technical domain, independent of which story they originate from.
-
-Present the proposed categories to the user with prefixes and counts:
-
+Return to the orchestrator:
 ```
-Proposed categories:
-  1. Authentication (AUTH) - 8 requirements
-  2. User Interface (UI) - 12 requirements
-  3. Data Validation (DVAL) - 5 requirements
-  4. Error Handling (ERR) - 6 requirements
-
-Add, remove, rename, or merge categories?
+Feature: <slug>
+Stories: {exists: true, version: "X.Y.Z", count: N}
+Spec: {exists: true/false, version: "X.Y.Z", source-stories-version: "X.Y.Z", stale: true/false, count: N}
+Overlapping constraints: [list]
 ```
 
-**Prefix rules:**
-- Each category gets a unique prefix of 2-5 uppercase characters
-- Prefixes must be unique across all categories
-- Prefixes are used in requirement IDs (e.g., `AUTH-001`)
+## Evaluate
 
-Wait for user confirmation before proceeding.
+Given the desired state from the orchestrator, determine what action is needed.
 
-### 4. Derive Requirements
+### 1. Does the desired state require spec changes?
 
-For each acceptance criterion across all stories:
-1. Determine which category it belongs to
-2. Translate it into one or more black-box testable EARS requirements
-3. Assign a unique ID: `<PREFIX>-<NNN>` (e.g., `AUTH-001`, `UI-003`)
+- If no spec exists → create spec
+- If spec exists but stories version differs → sync spec
+- If spec exists and versions match → check content alignment, report if current
+
+### 2. Check constraints
+
+- Requirements that duplicate a project-wide constraint should not appear in the feature spec
+- If an existing spec contains a requirement that has since been promoted to a constraint, flag it for removal
+
+### 3. Report evaluation
+
+Return to the orchestrator:
+```
+Action: create / sync / none
+Requirements to add: N
+Requirements to modify: N
+Requirements to remove: N (including constraint overlaps)
+Constraint issues: [list or none]
+```
+
+## Execute
+
+### Creating a new spec
+
+#### 1. Derive requirements
+
+For each acceptance criterion across all stories in this feature:
+
+1. Translate it into one or more black-box testable EARS requirements
+2. Assign a unique ID: `<PREFIX>-<NNN>` where PREFIX is a 2-5 character uppercase prefix derived from the feature slug
+
+**Prefix derivation:** Create a short, meaningful prefix from the feature slug:
+- `product-browsing` → `PROD`
+- `shopping-cart` → `CART`
+- `checkout` → `CHK`
+- `user-authentication` → `AUTH`
+- `password-reset-sms` → `PRS`
+
+Present the proposed prefix to the user for confirmation before proceeding.
 
 **Black-box testing constraint -- the litmus test:**
 
@@ -88,160 +107,129 @@ Requirements MUST describe:
 - Timing and performance from the user's perspective
 - Error messages and feedback presented to the user
 
-**Multi-source requirements:** A single requirement may be derived from criteria across multiple stories. Use comma-separated sources: `Source:: US-001: Criterion 3, US-002: Criterion 1`.
-
-### 5. Write Specification Files
-
-Create `docs/specs/` with one file per category plus an index.
-
-**Index file (`docs/specs/index.adoc`):**
+**Constraint filtering:** If a derived requirement is already covered by a constraint in `constraints.adoc`, do not include it in the spec. Instead, note in the spec that the constraint applies:
 
 ```asciidoc
-= Specifications
+NOTE: Password strength requirements are enforced by project constraint (Security: "Passwords must be at least 8 characters with mixed case and numbers"). Not duplicated here.
+```
+
+**Multi-source requirements:** A single requirement may be derived from criteria across multiple stories within this feature. Use comma-separated sources: `Source:: US-001: Criterion 3, US-002: Criterion 1`.
+
+#### 2. Write the spec file
+
+Create `docs/features/<slug>/spec.adoc`:
+
+```asciidoc
+= Specification: <Feature Name>
 :version: 1.0.0
 :source-stories-version: <user-stories version>
 :last-updated: YYYY-MM-DD
+:feature: <slug>
+:prefix: <PREFIX>
 :toc:
 
-== Categories
+== <PREFIX>-001
+The system shall display products in a grid or list format.
 
-* <<authentication.adoc#,Authentication (AUTH)>> -- N requirements
-* <<ui.adoc#,User Interface (UI)>> -- N requirements
+Type:: Ubiquitous
+Source:: US-001: View Product Catalog, Criterion 1
+Verification:: Open the product catalog page. Confirm that products are displayed in a grid or list layout.
 
-== Traceability Matrix
+== <PREFIX>-002
+When the user selects a category filter, the system shall display only products in that category.
+
+Type:: Event-driven
+Source:: US-001: View Product Catalog, Criterion 3
+Verification:: Select a category filter. Confirm that only products in the selected category are displayed.
+
+== Traceability
 
 [cols="1,2,2", options="header"]
 |===
 | Requirement ID | Requirement Summary | Source
 
-| AUTH-001
-| Registration form with email and password
-| US-001: User Registration, Criterion 1
+| <PREFIX>-001
+| Product display format
+| US-001: Criterion 1
 
-| AUTH-002
-| Email verification on registration
-| US-001: Criterion 3, US-003: Criterion 1
+| <PREFIX>-002
+| Category filtering
+| US-001: Criterion 3
 |===
-```
-
-**Category file (e.g., `docs/specs/authentication.adoc`):**
-
-```asciidoc
-= Authentication Requirements
-:version: 1.0.0
-:last-updated: YYYY-MM-DD
-:toc:
-
-== AUTH-001
-The system shall display a registration form with email and password fields.
-
-Type:: Ubiquitous
-Source:: US-001: User Registration, Criterion 1
-Verification:: Open the registration page. Confirm that email and password input fields are displayed.
-
-== AUTH-002
-When the user submits the registration form with valid data, the system shall send an email verification link.
-
-Type:: Event-driven
-Source:: US-001: User Registration, Criterion 3
-Verification:: Submit valid registration data and confirm that a verification email is received at the provided address.
 ```
 
 Each requirement includes:
 - The EARS requirement text as the section content
 - `Type` -- the EARS sentence type used
-- `Source` -- traceability to user story and criterion (comma-separated for multi-source)
+- `Source` -- traceability to user story and criterion within this feature
 - `Verification` -- a brief black-box test description
 
-**Version rules for spec files:**
-- `:version:` uses SemVer, starts at `1.0.0`
-- `:source-stories-version:` (index only) records which user stories version was used
-- Updated on every sync according to the bump rules in step 6
+### Syncing an existing spec
 
-### 6. Sync Workflow
+#### 1. Quick staleness check
 
-When specifications already exist:
+Compare `:source-stories-version:` in `spec.adoc` against `:version:` in `user-stories.adoc`. If versions match, inform the orchestrator that the spec appears current. The orchestrator decides whether to force re-analysis.
 
-#### 6.1 Quick Staleness Check
+#### 2. Content-based change analysis
 
-1. Read `:source-stories-version:` from `docs/specs/index.adoc`
-2. Read `:version:` from `user-stories.adoc`
-3. If versions match, inform the user that specs appear up to date. Ask if they want to force a re-analysis. If not, stop.
-
-#### 6.2 Content-Based Change Analysis
-
-The version check only detects staleness. Always perform a full content diff to determine actual changes:
-
-1. Read all current user stories and their acceptance criteria
+1. Read all current stories and their acceptance criteria
 2. Read all existing requirements and their `Source` traceability links
 3. For each story criterion, determine:
-   - **New** -- no corresponding requirement exists -> derive new requirements
-   - **Modified** -- the source criterion wording or intent changed -> update affected requirements
-   - **Unchanged** -- criterion and corresponding requirement still align -> no action
+   - **New** -- no corresponding requirement exists → derive new requirements
+   - **Modified** -- the source criterion wording or intent changed → update affected requirements
+   - **Unchanged** -- criterion and corresponding requirement still align → no action
 4. For each existing requirement, check if its source criterion still exists:
-   - **Orphaned** -- source criterion was removed -> mark for removal
+   - **Orphaned** -- source criterion was removed → mark for removal
+5. Check for requirements that now overlap with constraints added since last sync:
+   - **Promoted to constraint** -- requirement is now covered by `constraints.adoc` → mark for removal
 
-#### 6.3 Category Analysis
-
-- Check if new requirements fit existing categories or need new ones
-- Check if any category has zero remaining requirements after removals
-- **Only ask the user about categories when changes are needed** (new category proposed, or empty category to remove). Preserve existing categories by default.
-
-#### 6.4 Present Change Report
+#### 3. Present change report
 
 ```
-Spec sync: user-stories 1.0.0 -> 1.1.0
+Spec sync: stories 1.0.0 -> 1.1.0
 
 Added:
-  - UI-004: [new requirement summary]
-  - UI-005: [new requirement summary]
+  - PROD-005: [new requirement summary]
 
 Modified:
-  - AUTH-002: [old text] -> [new text]
+  - PROD-002: [old text] -> [new text]
 
 Removed:
-  - AUTH-005: [reason - source US-003 removed]
+  - PROD-004: [reason - source US-003 removed]
+  - PROD-006: [promoted to project constraint]
 
-Categories:
-  - Propose adding "Notifications" (NOTIF) -- 3 new requirements
-  - Propose removing "Legacy" -- 0 remaining requirements
-
-No changes to: ERR, DVAL, SEC
+No changes to: PROD-001, PROD-003
 ```
 
 Ask the user to confirm before applying changes.
 
-#### 6.5 Apply Changes and Bump Versions
+#### 4. Apply changes and bump versions
 
-After user confirmation:
-
-| Change Type | Spec Version Bump |
+| Change Type | Version Bump |
 |---|---|
 | Requirements removed | MAJOR |
 | Requirements added or modified | MINOR |
 | Traceability or metadata updates only | PATCH |
 
-- Update `:source-stories-version:` in `index.adoc` to match current user stories version
-- Update `:version:` in all affected category files and `index.adoc`
-- Update `:last-updated:` to today's date in all changed files
-- Update the traceability matrix
-- If a category has zero remaining requirements, remove the category file and its entry from the index
+- Update `:source-stories-version:` to match current stories version
+- Update `:version:` according to bump rules
+- Update `:last-updated:` to today's date
+- Update the traceability section
 
-### 7. Quality Checklist
+## Quality Checklist
 
 Before finalizing, verify every item:
 - Every requirement uses the correct EARS sentence type
 - Every requirement passes the black-box litmus test
-- Every requirement has a unique ID with a valid 2-5 char prefix
-- Every requirement traces back to at least one user story criterion
+- Every requirement has a unique ID with the feature prefix
+- Every requirement traces back to at least one story criterion within this feature
 - Multi-source requirements list all sources
-- No duplicate or conflicting requirements across categories
-- No empty category files remain
-- The traceability matrix is complete and matches all requirement files
-- All category files have consistent format
+- No duplicate or conflicting requirements
+- No requirements that duplicate project-wide constraints
+- The traceability section is complete
 - Version numbers are correct and updated
-- `:source-stories-version:` matches the user stories `:version:`
+- `:source-stories-version:` matches the stories `:version:`
 
 ## Reference
 
-See `references/example.adoc` for a complete example showing how user stories are transformed into categorized specifications (initial creation) and how specifications are updated when user stories change (sync).
+See `references/example.adoc` for a complete example showing how feature stories become a feature specification.

@@ -1,58 +1,86 @@
 ---
 name: needs-tasks
-description: Create phased implementation task lists from design documents. Use when asked to create tasks, plan implementation, break down the design into work items, create an implementation backlog, or prepare for coding. Reads docs/design/, user-stories.adoc, and docs/specs/ to produce a tickable task list in docs/tasks/ organized into sequential phases with parallelism markers and full traceability back to specs and stories. This is the final step in the proven-needs pipeline before implementation begins.
+description: Create phased implementation task lists for a feature. Use when the proven-intent orchestrator determines that a feature needs a task breakdown. Operates within a single feature package at docs/features/<slug>/. Tasks define the WORK — discrete coding units organized into sequential phases with parallelism markers and full traceability back to the feature's specs and stories.
 ---
 
 ## Prerequisites
 
-Load the `proven-needs` skill first. It provides the overall workflow context, artifact locations, and conventions.
+This skill is invoked by the `proven-intent` orchestrator, which provides the feature context (slug, intent, current state).
 
-## Workflow
+## Observe
 
-Creating an implementation task list involves these steps:
+Assess the current state of the task list for this feature.
 
-1. Read inputs
-2. Check for existing task list
-3. Analyze design for task decomposition
-4. Organize into phases
-5. Write task list
-6. Quality checklist
+### 1. Read feature design
 
-### 1. Read Inputs
+Read `docs/features/<slug>/design.adoc`. Extract `:version:`, `:status:`, system design sections, story resolution mappings. Also read `data-model.adoc` and `contracts/` if they exist within the feature package.
 
-Read these sources in order:
+**If missing:** Note that design is unavailable. Report to the orchestrator. Tasks will be derived directly from user stories (story-driven derivation). If proceeding: set `:source-design-version:` to `n/a`.
 
-1. **`docs/design/design.adoc`** -- primary driver. Extract `:version:`, `:status:`, system design sections, and story resolution mappings. Also read `data-model.adoc` and `contracts/` if they exist. **If missing:** Warn the user that the design document provides component structure, data model, and interface definitions that enable well-structured task decomposition. Without a design, tasks will be derived directly from user stories and acceptance criteria, resulting in less architectural guidance and no `Components::` field per task. Ask the user whether to proceed without a design or create one first using the `needs-design` skill. If proceeding: set `:source-design-version:` to `n/a` and follow the **Story-Driven Task Derivation** process in step 3.
+### 2. Read feature stories and spec
 
-2. **If `:status:` is `Stale`:** Warn the user that the design is stale. Ask whether to proceed anyway or update the design first.
+- **`docs/features/<slug>/user-stories.adoc`** -- extract story IDs, titles, acceptance criteria, and `:version:`.
+- **`docs/features/<slug>/spec.adoc`** -- extract spec IDs and `:version:`. If missing, set `:source-spec-version:` to `n/a`.
 
-3. **`user-stories.adoc`** -- for traceability. Extract story IDs and titles. **If missing:** Warn the user that traceability will be incomplete without user stories. Ask whether to proceed without story traceability or create user stories first using the `needs-user-story` skill.
+### 3. Read existing task list
 
-4. **`docs/specs/`** -- for traceability. Extract all spec IDs and their categories. **If missing:** Warn the user that traceability will be incomplete without specifications. Ask whether to proceed without spec traceability or create specifications first using the `needs-spec` skill.
+If `docs/features/<slug>/tasks.adoc` exists:
+- Read `:version:`, `:status:`, `:source-design-version:`, `:source-stories-version:`, `:source-spec-version:`
+- Read all phases, tasks, tick states, and metadata
 
-5. **Existing codebase** -- if this is not a greenfield project, analyze what already exists to avoid creating tasks for things already implemented.
+### 4. Read constraints
 
-### 2. Check for Existing Task List
+Read `constraints.adoc` from the project root. Identify quality constraints relevant to task planning.
 
-Look for `docs/tasks/tasks.adoc`.
+### 5. Analyze codebase
 
-**If no task list exists:** Continue with step 3.
+If this is not a greenfield project, analyze what already exists to avoid creating tasks for things already implemented.
 
-**If task list exists:** Read `:status:`, `:source-design-version:`, `:source-stories-version:`, and `:source-specs-version:`.
+### 6. Report observation
 
-**Transitive staleness check:** Compare the task list's `:source-stories-version:` and `:source-specs-version:` against the current versions in `user-stories.adoc` and `docs/specs/index.adoc`. If these differ (even if `:source-design-version:` matches the current design), warn the user that upstream artifacts have changed since the design was created. The design itself may be stale even though its version number has not changed. Recommend updating the design first using `needs-design`, then recreating tasks.
+Return to the orchestrator:
+```
+Feature: <slug>
+Design: {exists: true/false, version: "X.Y.Z", status: "Current/Stale/Implemented"}
+Stories: {exists: true, version: "X.Y.Z"}
+Spec: {exists: true/false, version: "X.Y.Z"}
+Tasks: {exists: true/false, version: "X.Y.Z", status: "Current/Stale/Implemented", progress: "N/M ticked"}
+```
+
+## Evaluate
+
+Given the desired state from the orchestrator, determine what action is needed.
+
+### 1. Does the desired state require task changes?
 
 | Condition | Action |
 |---|---|
-| `:status:` is `Implemented` | Previous task list is complete. Start a fresh task list (overwrite). |
-| Source versions match current design, stories, and specs -- no tasks ticked | Inform user task list appears current. Ask to force recreate or stop. |
-| Source versions match but some tasks are ticked | Inform user of progress. Ask to continue with existing list or recreate (warn about losing progress). |
-| `:source-design-version:` differs from current design | Task list is stale. Present summary of what changed in the design. Ask whether to recreate from scratch or incrementally update (preserving ticked tasks where possible). |
-| `:source-stories-version:` or `:source-specs-version:` differ from current | Upstream artifacts changed but design may not reflect them. Warn user and recommend updating design first, then recreating tasks. Ask whether to proceed anyway or stop. |
+| No task list exists | Create task list |
+| Task list exists, `:status:` is `Implemented` | Previous cycle complete. Create fresh task list (overwrite). |
+| Source versions match, no tasks ticked | Task list appears current. Report to orchestrator. |
+| Source versions match, some tasks ticked | Partial progress. Report to orchestrator. |
+| `:source-design-version:` differs from current design | Task list is stale. Determine whether to recreate or incrementally update. |
 
-### 3. Analyze for Task Decomposition
+### 2. Transitive staleness check
 
-#### Design-Driven Decomposition (default)
+Compare the task list's `:source-stories-version:` and `:source-spec-version:` against the current versions. If these differ (even if `:source-design-version:` matches), the design itself may be stale. Warn the orchestrator and recommend updating the design first.
+
+### 3. Check constraints
+
+Verify that task organization respects quality constraints (e.g., test coverage must not decrease -- ensure testing tasks exist).
+
+### 4. Report evaluation
+
+Return to the orchestrator:
+```
+Action: create / update / none
+Staleness: {design: true/false, transitive: true/false}
+Constraint issues: [list or none]
+```
+
+## Execute
+
+### Design-driven task decomposition (default)
 
 When a design document exists, walk through it systematically to identify discrete implementation units. Each task should be a single coding unit -- small enough to implement in one sitting.
 
@@ -68,29 +96,29 @@ When a design document exists, walk through it systematically to identify discre
 | Story resolution -- error cases | Error handling, edge cases |
 | Story resolution -- notifications | Notification/email implementation |
 
-**For each identified task, record:**
+**For each task, record:**
 - A clear, actionable title
 - Which design components are involved
-- Which spec IDs it satisfies (when specs are available)
+- Which spec IDs it satisfies (when spec exists)
 - Which user stories it contributes to
 - Whether it depends on other tasks (determines phase placement and parallelism)
 
-#### Story-Driven Task Derivation (when no design exists)
+### Story-driven task derivation (when no design exists)
 
-When `:source-design-version:` is `n/a`, derive tasks directly from user stories and acceptance criteria instead of design components:
+When `:source-design-version:` is `n/a`, derive tasks directly from user stories:
 
-1. Read each story and its acceptance criteria from `user-stories.adoc`
-2. For each story, create one or more tasks that implement its acceptance criteria. Group related criteria into a single task when they are tightly coupled; split into separate tasks when they are independently implementable.
+1. Read each story and its acceptance criteria
+2. For each story, create one or more tasks. Group related criteria into a single task when tightly coupled; split when independently implementable.
 3. For each task, record:
    - A clear, actionable title
    - Which user stories it implements
-   - Which spec IDs it satisfies (when specs are available; omit `Specs::` if `:source-specs-version:` is also `n/a`)
-   - The `Components::` field is omitted since there is no design to reference
-4. Use story feature groupings to inform phase organization (e.g., stories in the same feature area likely share implementation dependencies)
+   - Which spec IDs it satisfies (when spec exists; omit `Specs::` if also `n/a`)
+   - `Components::` is omitted since there is no design to reference
+4. Use story groupings to inform phase organization
 
-### 4. Organize into Phases
+### Organize into phases
 
-Group tasks into sequential phases based on implementation dependencies. Phases are completed in order -- all tasks in a phase should be completable before moving to the next phase.
+Group tasks into sequential phases based on implementation dependencies.
 
 **Typical phase progression** (adapt to the project):
 
@@ -103,32 +131,32 @@ Group tasks into sequential phases based on implementation dependencies. Phases 
 | Polish | Error handling, edge cases, notifications | Error responses, validation messages, notification triggers |
 
 Within each phase, mark every task:
+- **`[parallel]`** -- can be implemented concurrently. No dependency on other tasks within the phase.
+- **`[sequential]`** -- must be completed before subsequent sequential tasks in the same phase.
 
-- **`[parallel]`** -- can be implemented concurrently with other parallel tasks in the same phase. No dependency on other tasks within the phase.
-- **`[sequential]`** -- must be completed before subsequent sequential tasks in the same phase. Has intra-phase dependencies.
-
-**Guidelines for phase assignment:**
+**Guidelines:**
 - A task belongs in the earliest phase where all its dependencies are satisfied
-- Prefer more parallel tasks over fewer sequential ones -- split tasks to enable parallelism where possible
-- If a phase would contain only one task, consider merging it with an adjacent phase
+- Prefer more parallel tasks over fewer sequential ones
+- If a phase would contain only one task, consider merging with an adjacent phase
 
-### 5. Write Task List
+### Write task list
 
-Create `docs/tasks/` directory and write `docs/tasks/tasks.adoc`:
+Create `docs/features/<slug>/tasks.adoc`:
 
 ```asciidoc
-= Implementation Tasks
+= Implementation Tasks: <Feature Name>
 :version: 1.0.0
 :status: Current
 :source-design-version: <design version>
 :source-stories-version: <user-stories version>
-:source-specs-version: <specs version>
+:source-spec-version: <spec version>
 :last-updated: YYYY-MM-DD
+:feature: <slug>
 :toc:
 
 == Overview
 
-<Brief summary: what is being implemented, number of phases, total number of tasks.>
+<Brief summary: what is being implemented, number of phases, total tasks.>
 
 == Phase 1: <Phase Name>
 
@@ -152,14 +180,14 @@ Description:: <What to implement and key details>
 
 ...
 
-== Traceability Matrix
+== Traceability
 
 [cols="1,1,1", options="header"]
 |===
 | Story | Spec IDs | Tasks
 
-| US-001: <title> | AUTH-001, AUTH-002 | TASK-001, TASK-005
-| US-002: <title> | UI-001, UI-003 | TASK-002, TASK-006
+| US-001: <title> | PROD-001, PROD-002 | TASK-001, TASK-005
+| US-002: <title> | PROD-005, PROD-006 | TASK-002, TASK-006
 |===
 ```
 
@@ -170,27 +198,28 @@ Description:: <What to implement and key details>
 
 **Version rules:**
 - `:version:` uses SemVer, starts at `1.0.0`
-- `:source-design-version:` records which design version was used; set to `n/a` if design was skipped
-- `:source-stories-version:` and `:source-specs-version:` record upstream versions for full traceability; set to `n/a` if skipped
+- `:source-design-version:` records which design version was used; `n/a` if design was skipped
+- `:source-stories-version:` and `:source-spec-version:` record upstream versions; `n/a` if skipped
 - `:last-updated:` set to today's date
 
 **Task IDs:** Sequential within the document: TASK-001, TASK-002, etc. IDs are stable -- do not renumber when updating.
 
-**Ticking off tasks:** When a task is completed, change `[ ]` to `[x]`. When all tasks in the document are ticked, set `:status:` to `Implemented`.
+**Ticking off tasks:** When a task is completed, change `[ ]` to `[x]`. When all tasks are ticked, set `:status:` to `Implemented`.
 
-### 6. Quality Checklist
+## Quality Checklist
 
-Before finalizing, verify every item:
-- Every spec ID from `docs/specs/` appears in at least one task (skip if `:source-specs-version:` is `n/a`)
+Before finalizing, verify:
+- Every spec ID from the feature's `spec.adoc` appears in at least one task (skip if `:source-spec-version:` is `n/a`)
 - Every user story is covered by the aggregate tasks
-- Every design section (system design, data model, contracts) has corresponding tasks (skip if `:source-design-version:` is `n/a`)
-- No circular dependencies exist between phases
+- Every design section has corresponding tasks (skip if `:source-design-version:` is `n/a`)
+- No circular dependencies between phases
 - Phase ordering respects actual implementation dependencies
 - Each task is a discrete, implementable coding unit
-- Parallel/sequential markers are correct (parallel tasks truly have no intra-phase dependencies)
-- The traceability matrix is complete and accurate
-- Source versions are recorded correctly (use `n/a` for skipped upstream artifacts)
+- Parallel/sequential markers are correct
+- The traceability section is complete and accurate
+- Source versions are recorded correctly
+- Quality constraints from `constraints.adoc` are addressed (e.g., testing tasks exist if coverage constraints apply)
 
 ## Reference
 
-See `references/example.adoc` for a complete example showing how a design document becomes a phased task list with traceability, continuing the e-commerce project used in the `needs-design` example.
+See `references/example.adoc` for a complete example showing how a feature design becomes a phased task list with traceability.
