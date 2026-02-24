@@ -99,23 +99,23 @@ Dependency actions: [delegate to needs-dependencies]
 
 ```mermaid
 flowchart TD
-    OBS["Observe:\nvuln scan + code patterns\n+ config review"] --> PRIORITIZE["Prioritize\nby severity"]
+    OBS["Observe:<br/>vuln scan + code patterns<br/>+ config review"] --> PRIORITIZE["Prioritize<br/>by severity"]
 
-    PRIORITIZE --> CRIT["Critical\n→ immediate action"]
-    PRIORITIZE --> HI["High\n→ action required"]
-    PRIORITIZE --> MED["Medium\n→ recommended"]
-    PRIORITIZE --> LO["Low\n→ advisory"]
+    PRIORITIZE --> CRIT["Critical<br/>→ immediate action"]
+    PRIORITIZE --> HI["High<br/>→ action required"]
+    PRIORITIZE --> MED["Medium<br/>→ recommended"]
+    PRIORITIZE --> LO["Low<br/>→ advisory"]
 
     CRIT --> REMEDIATE
     HI --> REMEDIATE
     MED --> REMEDIATE
 
-    REMEDIATE{"Remediation\ntype?"}
-    REMEDIATE -->|"Dependency\nvulnerability"| DEPS["Delegate to\nneeds-dependencies"]
-    REMEDIATE -->|"Code\nanti-pattern"| CODE["Fix code\n(secrets, injection,\nvalidation, crypto)"]
-    REMEDIATE -->|"Configuration\nissue"| CONFIG["Apply secure\nconfiguration"]
+    REMEDIATE{"Remediation<br/>type?"}
+    REMEDIATE -->|"Dependency<br/>vulnerability"| DEPS["Delegate to<br/>needs-dependencies"]
+    REMEDIATE -->|"Code<br/>anti-pattern"| CODE["Fix code<br/>(secrets, injection,<br/>validation, crypto)"]
+    REMEDIATE -->|"Configuration<br/>issue"| CONFIG["Apply secure<br/>configuration"]
 
-    DEPS --> VERIFY["Verify:\nre-scan + build + test"]
+    DEPS --> VERIFY["Verify:<br/>re-scan + build + test"]
     CODE --> VERIFY
     CONFIG --> VERIFY
 

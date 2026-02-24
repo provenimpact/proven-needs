@@ -121,13 +121,13 @@ flowchart LR
         CONST[("constraints.adoc")]
         STORIES[("user-stories.adoc")]
         SPEC[("spec.adoc")]
-        DESIGN[("design.adoc\ndata-model.adoc\ncontracts/")]
+        DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
         TASKS[("tasks.adoc")]
         CODE[("source code")]
         TESTFILES[("test files")]
         ADRS[("docs/adrs/")]
         ARCH[("architecture.adoc")]
-        DEPS[("package manifests\nlockfiles")]
+        DEPS[("package manifests<br/>lockfiles")]
         STATELOG[("state-log.adoc")]
     end
 
@@ -283,16 +283,16 @@ Every capability follows the **observe/evaluate/execute** pattern:
 
 ```mermaid
 flowchart TD
-    O["Observe\n<i>Read artifacts, codebase,\nconstraints in this domain</i>"]
-    E["Evaluate\n<i>Does desired state require action?\nDo constraints allow it?</i>"]
-    X["Execute\n<i>Make the minimum changes.\nCreate or update artifacts.</i>"]
+    O["Observe<br/><i>Read artifacts, codebase,<br/>constraints in this domain</i>"]
+    E["Evaluate<br/><i>Does desired state require action?<br/>Do constraints allow it?</i>"]
+    X["Execute<br/><i>Make the minimum changes.<br/>Create or update artifacts.</i>"]
 
     O --> E
     E -->|Action needed| X
     E -->|"Already current"| DONE["Report: no action needed"]
-    E -->|"Constraint violation"| BLOCK["Report violation\nto orchestrator"]
+    E -->|"Constraint violation"| BLOCK["Report violation<br/>to orchestrator"]
     X --> VERIFY["Verify output"]
-    VERIFY --> REPORT["Return result\nto orchestrator"]
+    VERIFY --> REPORT["Return result<br/>to orchestrator"]
 
     style DONE fill:#4CAF50,color:#fff,stroke:none
     style BLOCK fill:#f44336,color:#fff,stroke:none
@@ -324,10 +324,10 @@ Each downstream artifact tracks its upstream version. When an upstream artifact 
 
 ```mermaid
 flowchart LR
-    S["user-stories.adoc\n:version:"]
-    SP["spec.adoc\n:source-stories-version:"]
-    D["design.adoc\n:source-stories-version:\n:source-spec-version:"]
-    T["tasks.adoc\n:source-design-version:\n:source-stories-version:\n:source-spec-version:"]
+    S["user-stories.adoc<br/>:version:"]
+    SP["spec.adoc<br/>:source-stories-version:"]
+    D["design.adoc<br/>:source-stories-version:<br/>:source-spec-version:"]
+    T["tasks.adoc<br/>:source-design-version:<br/>:source-stories-version:<br/>:source-spec-version:"]
 
     S -->|tracked by| SP
     S -->|tracked by| D

@@ -88,15 +88,15 @@ flowchart TD
     START["Execute design"] --> P0["Phase 0: Research"]
 
     subgraph phase0 ["Phase 0 — Research and Decisions"]
-        P0 --> TECH["Identify technology\ndecisions needed"]
-        P0 --> UNKN["Identify unknowns\nand dependencies"]
-        P0 --> EXIST["Analyze existing\nsystem (if non-greenfield)"]
+        P0 --> TECH["Identify technology<br/>decisions needed"]
+        P0 --> UNKN["Identify unknowns<br/>and dependencies"]
+        P0 --> EXIST["Analyze existing<br/>system (if non-greenfield)"]
 
-        TECH --> ADR{"ADR exists\nfor decision?"}
+        TECH --> ADR{"ADR exists<br/>for decision?"}
         ADR -->|Yes| REUSE["Reuse existing ADR"]
-        ADR -->|No| CREATE["Create ADR\n(via needs-adr)"]
+        ADR -->|No| CREATE["Create ADR<br/>(via needs-adr)"]
 
-        UNKN --> RESOLVE["Resolve unknowns\nwith user"]
+        UNKN --> RESOLVE["Resolve unknowns<br/>with user"]
     end
 
     REUSE --> P1
@@ -106,10 +106,10 @@ flowchart TD
 
     P1["Phase 1: Design"]
     subgraph phase1 ["Phase 1 — Design"]
-        P1 --> SYS["System design\n+ Mermaid diagrams"]
-        P1 --> DATA["Data model\n(if applicable)"]
-        P1 --> IFACE["Interface contracts\n(if applicable)"]
-        P1 --> STORY["Story resolution\n(map stories → design)"]
+        P1 --> SYS["System design<br/>+ Mermaid diagrams"]
+        P1 --> DATA["Data model<br/>(if applicable)"]
+        P1 --> IFACE["Interface contracts<br/>(if applicable)"]
+        P1 --> STORY["Story resolution<br/>(map stories → design)"]
     end
 
     SYS --> WRITE["Write design files"]
@@ -275,24 +275,24 @@ The design is a living document that stays in sync with stories and specs. When 
 
 ```mermaid
 flowchart TD
-    START["Sync triggered"] --> STALE{"Quick staleness check:\nsource versions ≠\ncurrent versions?"}
+    START["Sync triggered"] --> STALE{"Quick staleness check:<br/>source versions ≠<br/>current versions?"}
 
-    STALE -->|No| CURRENT["Design appears current\n→ report to orchestrator"]
-    STALE -->|Yes| DIFF["Content-based\nchange analysis"]
+    STALE -->|No| CURRENT["Design appears current<br/>→ report to orchestrator"]
+    STALE -->|Yes| DIFF["Content-based<br/>change analysis"]
 
-    DIFF --> NEW["New stories/specs\n→ need design coverage"]
-    DIFF --> MOD["Modified stories/specs\n→ update design sections"]
-    DIFF --> REM["Removed stories/specs\n→ orphaned design sections"]
+    DIFF --> NEW["New stories/specs<br/>→ need design coverage"]
+    DIFF --> MOD["Modified stories/specs<br/>→ update design sections"]
+    DIFF --> REM["Removed stories/specs<br/>→ orphaned design sections"]
 
-    NEW --> REPORT["Present change\nreport to user"]
+    NEW --> REPORT["Present change<br/>report to user"]
     MOD --> REPORT
     REM --> REPORT
 
     REPORT --> DECIDE{"User decides"}
-    DECIDE -->|Incremental| INCR["Apply incremental\nupdates"]
-    DECIDE -->|Full redesign| FULL["Redesign from\nscratch"]
+    DECIDE -->|Incremental| INCR["Apply incremental<br/>updates"]
+    DECIDE -->|Full redesign| FULL["Redesign from<br/>scratch"]
 
-    INCR --> BUMP["Version bump\n+ update source versions\n+ set status: Current"]
+    INCR --> BUMP["Version bump<br/>+ update source versions<br/>+ set status: Current"]
     FULL --> BUMP
 ```
 

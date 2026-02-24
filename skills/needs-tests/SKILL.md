@@ -92,13 +92,13 @@ Constraint requirements: [coverage threshold, test type requirements]
 
 ```mermaid
 flowchart TD
-    SPEC["spec.adoc\nrequirements"] --> TYPE{"EARS\ntype?"}
+    SPEC["spec.adoc<br/>requirements"] --> TYPE{"EARS<br/>type?"}
 
-    TYPE -->|Ubiquitous| T1["Unconditional assertions\n(test across states,\non load, after nav)"]
-    TYPE -->|Event-driven| T2["Trigger event → assert response\n(valid + invalid triggers)"]
-    TYPE -->|State-driven| T3["Enter state → assert behavior\n(test entry/exit boundaries)"]
-    TYPE -->|Unwanted| T4["Trigger error → assert\nrecovery/handling"]
-    TYPE -->|Optional| T5["Enable → assert present\nDisable → assert absent"]
+    TYPE -->|Ubiquitous| T1["Unconditional assertions<br/>(test across states,<br/>on load, after nav)"]
+    TYPE -->|Event-driven| T2["Trigger event → assert response<br/>(valid + invalid triggers)"]
+    TYPE -->|State-driven| T3["Enter state → assert behavior<br/>(test entry/exit boundaries)"]
+    TYPE -->|Unwanted| T4["Trigger error → assert<br/>recovery/handling"]
+    TYPE -->|Optional| T5["Enable → assert present<br/>Disable → assert absent"]
 
     T1 --> LEVEL
     T2 --> LEVEL
@@ -106,10 +106,10 @@ flowchart TD
     T4 --> LEVEL
     T5 --> LEVEL
 
-    LEVEL{"Test level\n(from design)"}
-    LEVEL -->|"Single component,\nclear I/O"| UNIT["Unit test"]
-    LEVEL -->|"Multiple components\nor persistence"| INTEG["Integration test"]
-    LEVEL -->|"Full user journey\nor UI interaction"| E2E["End-to-end test"]
+    LEVEL{"Test level<br/>(from design)"}
+    LEVEL -->|"Single component,<br/>clear I/O"| UNIT["Unit test"]
+    LEVEL -->|"Multiple components<br/>or persistence"| INTEG["Integration test"]
+    LEVEL -->|"Full user journey<br/>or UI interaction"| E2E["End-to-end test"]
 ```
 
 ### Derive test cases from specifications

@@ -168,27 +168,27 @@ Each requirement includes:
 
 ```mermaid
 flowchart TD
-    START["Sync triggered"] --> STALE{"Quick staleness check:\nsource-stories-version\n≠ stories version?"}
+    START["Sync triggered"] --> STALE{"Quick staleness check:<br/>source-stories-version<br/>≠ stories version?"}
 
-    STALE -->|No| CURRENT["Spec appears current\n→ report to orchestrator"]
-    STALE -->|Yes| ANALYZE["Content-based\nchange analysis"]
+    STALE -->|No| CURRENT["Spec appears current<br/>→ report to orchestrator"]
+    STALE -->|Yes| ANALYZE["Content-based<br/>change analysis"]
 
-    ANALYZE --> NEW["New criteria\n→ derive new reqs"]
-    ANALYZE --> MOD["Modified criteria\n→ update affected reqs"]
-    ANALYZE --> UNCH["Unchanged criteria\n→ no action"]
-    ANALYZE --> ORPH["Orphaned reqs\n(source removed)\n→ mark for removal"]
-    ANALYZE --> PROM["Promoted to constraint\n→ mark for removal"]
+    ANALYZE --> NEW["New criteria<br/>→ derive new reqs"]
+    ANALYZE --> MOD["Modified criteria<br/>→ update affected reqs"]
+    ANALYZE --> UNCH["Unchanged criteria<br/>→ no action"]
+    ANALYZE --> ORPH["Orphaned reqs<br/>(source removed)<br/>→ mark for removal"]
+    ANALYZE --> PROM["Promoted to constraint<br/>→ mark for removal"]
 
-    NEW --> REPORT["Present change report\nto user"]
+    NEW --> REPORT["Present change report<br/>to user"]
     MOD --> REPORT
     ORPH --> REPORT
     PROM --> REPORT
 
-    REPORT --> CONFIRM{"User\nconfirms?"}
+    REPORT --> CONFIRM{"User<br/>confirms?"}
     CONFIRM -->|Yes| APPLY["Apply changes"]
     CONFIRM -->|Adjust| REPORT
 
-    APPLY --> BUMP["Version bump\n+ update source-stories-version"]
+    APPLY --> BUMP["Version bump<br/>+ update source-stories-version"]
 ```
 
 #### 1. Quick staleness check

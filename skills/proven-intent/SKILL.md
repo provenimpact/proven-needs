@@ -171,15 +171,15 @@ Classify the desired state into one or more intent types:
 
 ```mermaid
 flowchart TD
-    INPUT["User intent"] --> SIGNALS{"Analyze\nsignals"}
+    INPUT["User intent"] --> SIGNALS{"Analyze<br/>signals"}
 
-    SIGNALS -->|"User journey,\nuser-facing capability"| FEAT["Feature evolution"]
-    SIGNALS -->|"Universal quantifiers,\nsystem-as-subject"| CONST["Constraint declaration"]
-    SIGNALS -->|"References artifacts,\nsync/update language"| ART["Artifact maintenance"]
-    SIGNALS -->|"References packages,\nvulnerabilities"| DEP["Dependency maintenance"]
-    SIGNALS -->|"System structure,\ntechnology changes"| ARCH["Architecture evolution"]
-    SIGNALS -->|"Tests, coverage,\ncode quality"| QUAL["Quality improvement"]
-    SIGNALS -->|"References docs,\narchitecture document"| DOC["Documentation"]
+    SIGNALS -->|"User journey,<br/>user-facing capability"| FEAT["Feature evolution"]
+    SIGNALS -->|"Universal quantifiers,<br/>system-as-subject"| CONST["Constraint declaration"]
+    SIGNALS -->|"References artifacts,<br/>sync/update language"| ART["Artifact maintenance"]
+    SIGNALS -->|"References packages,<br/>vulnerabilities"| DEP["Dependency maintenance"]
+    SIGNALS -->|"System structure,<br/>technology changes"| ARCH["Architecture evolution"]
+    SIGNALS -->|"Tests, coverage,<br/>code quality"| QUAL["Quality improvement"]
+    SIGNALS -->|"References docs,<br/>architecture document"| DOC["Documentation"]
 ```
 
 #### 2.2 Constraint detection
@@ -193,18 +193,18 @@ Before proceeding with feature decomposition, check whether the intent is actual
 
 ```mermaid
 flowchart TD
-    INTENT["Intent statement"] --> Q1{"Universal scope?\n(all, every, never)"}
+    INTENT["Intent statement"] --> Q1{"Universal scope?<br/>(all, every, never)"}
 
-    Q1 -->|Yes| Q2{"System-as-subject?\n(property of system,\nnot user capability)"}
+    Q1 -->|Yes| Q2{"System-as-subject?<br/>(property of system,<br/>not user capability)"}
     Q1 -->|No| FEATURE["Feature requirement"]
 
-    Q2 -->|Yes| Q3{"No user journey?\n(no role, action,\nor benefit)"}
+    Q2 -->|Yes| Q3{"No user journey?<br/>(no role, action,<br/>or benefit)"}
     Q2 -->|No| FEATURE
 
-    Q3 -->|Yes| Q4{"Future-proof?\n(applies to features\nthat don't exist yet)"}
-    Q3 -->|No| ASK["Ask user:\nconstraint or\nfeature requirement?"]
+    Q3 -->|Yes| Q4{"Future-proof?<br/>(applies to features<br/>that don't exist yet)"}
+    Q3 -->|No| ASK["Ask user:<br/>constraint or<br/>feature requirement?"]
 
-    Q4 -->|Yes| CONSTRAINT["Constraint\n→ add to constraints.adoc"]
+    Q4 -->|Yes| CONSTRAINT["Constraint<br/>→ add to constraints.adoc"]
     Q4 -->|No| ASK
 ```
 
@@ -227,17 +227,17 @@ Which did you mean?
 
 ```mermaid
 flowchart TD
-    START((Intent)) --> CHECK{Existing\nfeatures?}
+    START((Intent)) --> CHECK{Existing<br/>features?}
 
     CHECK -->|No: Greenfield| GF_P1
     CHECK -->|Yes: Evolution| EV_P1
 
     subgraph greenfield ["Greenfield Path"]
-        GF_P1["Pass 1: Draft stories\ninto _drafts/ temp slug"]
-        GF_COHESION["Analyze cohesion\n(shared data, journey,\nindependent value)"]
-        GF_PROPOSE["Propose feature\ngroupings to user"]
-        GF_CONFIRM{User\nconfirms?}
-        GF_P2["Pass 2: Distribute stories\ninto feature packages"]
+        GF_P1["Pass 1: Draft stories<br/>into _drafts/ temp slug"]
+        GF_COHESION["Analyze cohesion<br/>(shared data, journey,<br/>independent value)"]
+        GF_PROPOSE["Propose feature<br/>groupings to user"]
+        GF_CONFIRM{User<br/>confirms?}
+        GF_P2["Pass 2: Distribute stories<br/>into feature packages"]
         GF_CLEANUP["Remove _drafts/"]
 
         GF_P1 --> GF_COHESION
@@ -249,11 +249,11 @@ flowchart TD
     end
 
     subgraph evolution ["Evolution Path"]
-        EV_P1["Pass 1: Draft stories\ninto _drafts/ temp slug"]
-        EV_CLASSIFY["Classify against\nexisting features\n(extends / new / updates)"]
-        EV_PROPOSE["Present mapping\nto user"]
-        EV_CONFIRM{User\nconfirms?}
-        EV_P2["Pass 2: Distribute\n(add to existing /\ncreate new packages)"]
+        EV_P1["Pass 1: Draft stories<br/>into _drafts/ temp slug"]
+        EV_CLASSIFY["Classify against<br/>existing features<br/>(extends / new / updates)"]
+        EV_PROPOSE["Present mapping<br/>to user"]
+        EV_CONFIRM{User<br/>confirms?}
+        EV_P2["Pass 2: Distribute<br/>(add to existing /<br/>create new packages)"]
         EV_CLEANUP["Remove _drafts/"]
 
         EV_P1 --> EV_CLASSIFY
@@ -264,7 +264,7 @@ flowchart TD
         EV_P2 --> EV_CLEANUP
     end
 
-    GF_CLEANUP --> DONE((Feature packages\nready))
+    GF_CLEANUP --> DONE((Feature packages<br/>ready))
     EV_CLEANUP --> DONE
 ```
 
@@ -522,23 +522,23 @@ Append to `docs/state-log.adoc`. See the State Log section for format.
 flowchart TD
     CHANGE["Proposed transition"] --> FACTORS["Assess risk factors"]
 
-    FACTORS --> SCOPE{"Scope:\nartifacts/files\naffected?"}
-    FACTORS --> PROX{"Constraint\nproximity?"}
+    FACTORS --> SCOPE{"Scope:<br/>artifacts/files<br/>affected?"}
+    FACTORS --> PROX{"Constraint<br/>proximity?"}
     FACTORS --> REV{"Reversibility?"}
-    FACTORS --> CODE{"Code\nimpact?"}
+    FACTORS --> CODE{"Code<br/>impact?"}
 
-    SCOPE --> CLASSIFY{"Risk\nclassification"}
+    SCOPE --> CLASSIFY{"Risk<br/>classification"}
     PROX --> CLASSIFY
     REV --> CLASSIFY
     CODE --> CLASSIFY
 
-    CLASSIFY -->|"Patch deps, doc fixes,\nmetadata, sync unchanged"| LOW["Low risk"]
-    CLASSIFY -->|"Minor deps, design adjust,\nadd specs for existing stories"| MED["Medium risk"]
-    CLASSIFY -->|"New features, breaking changes,\narch changes, major bumps, code"| HIGH["High risk"]
+    CLASSIFY -->|"Patch deps, doc fixes,<br/>metadata, sync unchanged"| LOW["Low risk"]
+    CLASSIFY -->|"Minor deps, design adjust,<br/>add specs for existing stories"| MED["Medium risk"]
+    CLASSIFY -->|"New features, breaking changes,<br/>arch changes, major bumps, code"| HIGH["High risk"]
 
-    LOW --> AUTO["Auto-approve:\nexecute immediately"]
-    MED --> PROPOSE["Propose with summary,\nask user"]
-    HIGH --> REQUIRE["Full plan,\nrequire approval"]
+    LOW --> AUTO["Auto-approve:<br/>execute immediately"]
+    MED --> PROPOSE["Propose with summary,<br/>ask user"]
+    HIGH --> REQUIRE["Full plan,<br/>require approval"]
 ```
 
 Transitions are classified by risk level:
@@ -794,18 +794,18 @@ When this skill is loaded, **immediately** check the project's `AGENTS.md` for t
 
 ```mermaid
 flowchart TD
-    START["Read AGENTS.md"] --> EXISTS{"File\nexists?"}
+    START["Read AGENTS.md"] --> EXISTS{"File<br/>exists?"}
 
-    EXISTS -->|No| APPEND["Append proven-intent\nblock to new file"]
-    EXISTS -->|Yes| MARKER{"proven-intent\nmarker found?"}
+    EXISTS -->|No| APPEND["Append proven-intent<br/>block to new file"]
+    EXISTS -->|Yes| MARKER{"proven-intent<br/>marker found?"}
 
-    MARKER -->|Yes| DONE["Do nothing\n(already bootstrapped)"]
-    MARKER -->|No| LEGACY{"Legacy\nproven-needs\nmarker found?"}
+    MARKER -->|Yes| DONE["Do nothing<br/>(already bootstrapped)"]
+    MARKER -->|No| LEGACY{"Legacy<br/>proven-needs<br/>marker found?"}
 
-    LEGACY -->|Yes| REPLACE["Replace proven-needs\nblock with\nproven-intent block"]
+    LEGACY -->|Yes| REPLACE["Replace proven-needs<br/>block with<br/>proven-intent block"]
     LEGACY -->|No| APPEND
 
-    REPLACE --> INFORM["Inform user\nAGENTS.md updated"]
+    REPLACE --> INFORM["Inform user<br/>AGENTS.md updated"]
     APPEND --> INFORM
 ```
 

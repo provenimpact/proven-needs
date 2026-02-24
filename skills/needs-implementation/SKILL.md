@@ -85,20 +85,20 @@ flowchart TD
     START["Start implementation"] --> PHASE["Phase N"]
 
     subgraph loop ["Per-phase loop"]
-        PHASE --> TODO["1. Build phase\ntodo list"]
-        TODO --> IMPL["2. Implement tasks\n(sequential / parallel)"]
-        IMPL --> VERIFY{"3. Verify\n(build / lint / test)"}
+        PHASE --> TODO["1. Build phase<br/>todo list"]
+        TODO --> IMPL["2. Implement tasks<br/>(sequential / parallel)"]
+        IMPL --> VERIFY{"3. Verify<br/>(build / lint / test)"}
         VERIFY -->|Fail| FIX["Fix issues"] --> VERIFY
         VERIFY -->|Pass| COMMIT["4. Commit phase"]
-        COMMIT --> MORE{"More\nphases?"}
+        COMMIT --> MORE{"More<br/>phases?"}
         MORE -->|"Yes (user: continue)"| NEXT["Next phase"] --> TODO
     end
 
-    MORE -->|"No / user: stop"| FINAL{"All phases\ncomplete?"}
-    FINAL -->|No| SAVE["Save progress\nin tasks.adoc"]
-    FINAL -->|Yes| MARK["Mark status:\nImplemented"]
-    MARK --> DIVERGE["Detect design\ndivergences"]
-    DIVERGE --> REPORT["Report to\norchestrator"]
+    MORE -->|"No / user: stop"| FINAL{"All phases<br/>complete?"}
+    FINAL -->|No| SAVE["Save progress<br/>in tasks.adoc"]
+    FINAL -->|Yes| MARK["Mark status:<br/>Implemented"]
+    MARK --> DIVERGE["Detect design<br/>divergences"]
+    DIVERGE --> REPORT["Report to<br/>orchestrator"]
 ```
 
 ### Phase-by-phase implementation (from task list)
