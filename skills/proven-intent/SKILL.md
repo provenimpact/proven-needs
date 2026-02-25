@@ -78,6 +78,18 @@ An append-only audit trail of all state transitions. Lives at `docs/state-log.ad
 
 The orchestrator does not produce artifacts directly. It invokes capabilities (the `needs-*` skills) to perform work. Each capability follows the observe/evaluate/execute pattern.
 
+### Invoking a capability
+
+To invoke a capability, **load its skill by name** using the skill-loading tool (e.g., load `needs-stories`). Each capability is a separate skill with its own instructions for artifact format, versioning, quality checks, and the observe/evaluate/execute cycle.
+
+**Do NOT attempt to perform a capability's work without first loading its skill definition.** The orchestrator's job is to plan and coordinate -- the capability skills contain the detailed instructions for producing correct artifacts.
+
+Invocation steps:
+1. Load the skill by name (e.g., `needs-stories`, `needs-spec`, `needs-design`)
+2. The capability skill will run its own observe -> evaluate -> execute cycle
+3. Wait for the capability to complete and return its report before proceeding to the next capability
+4. If a capability skill references another skill (e.g., `needs-design` may load `needs-adr`), that skill must also be loaded
+
 ### Feature-scoped capabilities
 
 These operate within a single feature package:
@@ -440,9 +452,22 @@ Transition plan to achieve "Users can reset password via SMS":
   Proceed?
 ```
 
+#### Execution mode
+
+After the user approves the transition plan, ask how they want the workflow to execute:
+
+```
+How should I proceed through the capabilities?
+
+  1. Autonomous -- execute all capabilities without pausing between them
+  2. Interactive -- ask for confirmation before starting each capability
+```
+
+Store the user's choice for the duration of this transition. Default to **Interactive** if the user does not express a preference.
+
 ### 5. Execute Transition
 
-Invoke capabilities in the derived order. For each capability:
+Invoke capabilities in the derived order by loading each capability skill. For each capability:
 
 1. The orchestrator passes the feature context (slug, desired state, current state for that feature)
 2. The capability runs its observe → evaluate → execute cycle
@@ -452,6 +477,20 @@ Invoke capabilities in the derived order. For each capability:
 - Verify the artifact was created/updated correctly
 - Check that no constraints were violated
 - Update the state model
+
+### Transition progress tracking
+
+Maintain an explicit checklist of all capabilities to invoke for this transition. Use the todo-list tool if available. After each capability completes, mark it done.
+
+**Execution mode behavior:**
+- **Interactive mode:** After each capability completes, present the updated checklist and ask the user whether to continue to the next capability. Show which capabilities are done, which is next, and which remain.
+- **Autonomous mode:** After each capability completes, immediately proceed to the next capability without asking. Report progress inline (e.g., "needs-stories complete, proceeding to needs-spec...").
+
+In both modes, the following rules apply:
+- **Do NOT skip capabilities in the plan.** Every capability in the derived transition plan must be invoked unless the user explicitly asks to stop.
+- **Do NOT treat `needs-implementation` as the final step.** Post-implementation capabilities (`needs-tests`, `needs-architecture`, design divergence resolution) are part of the plan and must execute.
+- If the user asks to stop mid-transition, record a partial transition in `docs/state-log.adoc` with `:result: Partial` and list the capabilities completed vs. remaining.
+- When a new session starts, the Observe phase (step 1) reads the state-log for `:result: Partial` entries. If a partial transition exists, propose completing it before starting new work.
 
 **Design divergence resolution (after `needs-implementation` completes):**
 
@@ -488,6 +527,9 @@ Present this analysis to the user with enough context to make a good decision. F
 - If the user chooses "update design" → invoke `needs-design` (reconciliation mode) with the divergence details
 - If the user chooses "fix code" → re-invoke `needs-implementation` with the specific fix
 - The user may choose different resolutions for different divergences
+
+**Divergence report verification:**
+After `needs-implementation` completes, verify that it produced a divergence report. If no report was provided (neither divergences nor an explicit "no divergences" confirmation), request the report before proceeding to post-implementation steps.
 
 **Error handling:**
 - If a capability fails validation → stop, report to user, ask how to proceed
@@ -752,7 +794,7 @@ Each downstream artifact tracks its upstream:
 
 ### Format and dates
 
-All artifacts use AsciiDoc (`.adoc`). Dates use `YYYY-MM-DD` format. Diagrams use Mermaid.
+All artifacts use AsciiDoc (`.adoc`). Dates use `YYYY-MM-DD` format. Diagrams use Mermaid. AsciiDoc artifacts use `[source,mermaid]` blocks; these render as syntax-highlighted code on GitHub and as diagrams in Asciidoctor-compatible viewers with the `asciidoctor-diagram` extension.
 
 ### Diagram conventions
 
