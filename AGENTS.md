@@ -1,6 +1,6 @@
 # Agents
 
-This is the **proven-capability** skill definition repository. It contains the skill definitions, examples, and documentation for the intent-driven state transition workflow.
+This is the **proven-needs** skill definition repository. It contains the skill definitions, examples, and documentation for the intent-driven state transition workflow.
 
 ## Working on this repo
 

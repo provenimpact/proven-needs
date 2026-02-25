@@ -1,4 +1,4 @@
-# proven-capability
+# proven-needs
 
 Intent-driven state transition workflow for evolving software systems.
 
