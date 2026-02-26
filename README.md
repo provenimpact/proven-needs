@@ -1,150 +1,383 @@
 # proven-needs
 
-Spec driven development workflow for creating production grade software.
+Intent-driven state transition workflow for evolving software systems.
 
-Acceptance criteria and specifications follow the [EARS (Easy Approach to Requirements Syntax)](.opencode/skills/ears-requirements/reference/ears-reference.adoc) standard to ensure requirements are unambiguous, verifiable, and consistent.
+Declare a **desired state**, evaluate it against **reality** and **constraints**, then execute the **minimal valid transition** to make it true. Both feature work and maintenance use the same mechanism.
 
-## Workflow
+## How It Works
+
+```mermaid
+flowchart TD
+    START((User declares<br/>desired state)) --> OBSERVE
+
+    subgraph LOOP ["State Transition Loop"]
+        OBSERVE["1. Observe<br/><i>Capture current state:<br/>artifacts, codebase, deps, security</i>"]
+        DECLARE["2. Declare<br/><i>Classify intent &amp; decompose<br/>into features</i>"]
+        EVALUATE["3. Evaluate<br/><i>Check feasibility, constraints,<br/>staleness</i>"]
+        DERIVE["4. Derive<br/><i>Build minimal transition plan<br/>from capability graph</i>"]
+        EXECUTE["5. Execute<br/><i>Invoke capabilities in<br/>dependency order</i>"]
+        VALIDATE["6. Validate<br/><i>Verify desired state is true,<br/>constraints hold</i>"]
+
+        OBSERVE --> DECLARE
+        DECLARE --> EVALUATE
+        EVALUATE -->|Feasible| DERIVE
+        EVALUATE -->|Violation| BLOCK
+        DERIVE --> EXECUTE
+        EXECUTE --> VALIDATE
+        VALIDATE -->|Achieved| LOG
+        VALIDATE -->|Not achieved| OBSERVE
+    end
+
+    BLOCK["Constraint Violation<br/><i>Revise, update constraint,<br/>or abort</i>"] -->|Revised| EVALUATE
+    LOG["Record in<br/>state-log.adoc"] --> NEXT
+    NEXT((Declare next<br/>desired state)) --> OBSERVE
+
+    style START fill:#4CAF50,color:#fff,stroke:none
+    style NEXT fill:#4CAF50,color:#fff,stroke:none
+    style BLOCK fill:#f44336,color:#fff,stroke:none
+    style LOG fill:#2196F3,color:#fff,stroke:none
+```
+
+1. **Observe** current state (artifacts, codebase, dependencies, security posture)
+2. **Declare** desired state ("Users can reset password via SMS", "No vulnerable dependencies")
+3. **Evaluate** feasibility against constraints
+4. **Derive** the minimal transition plan (which capabilities to invoke)
+5. **Execute** the transition
+6. **Validate** the desired state is now true
+
+The system figures out what needs to happen. You declare what must be true.
+
+### Capability Invocation
+
+During the **Execute** phase, the orchestrator invokes capabilities in dependency order. The pipeline is not rigid -- the orchestrator derives what is needed dynamically and can skip steps whose artifacts are already current.
+
+```mermaid
+flowchart LR
+    subgraph feature ["Feature Pipeline (per feature package)"]
+        direction LR
+        STORIES["needs-stories<br/><i>WHY</i>"]
+        SPEC["needs-spec<br/><i>WHAT</i>"]
+        DESIGN["needs-design<br/><i>HOW</i>"]
+        TASKS["needs-tasks<br/><i>WORK</i>"]
+        IMPL["needs-implementation<br/><i>CODE</i>"]
+        TESTS["needs-tests<br/><i>VERIFY</i>"]
+
+        STORIES --> SPEC
+        STORIES --> DESIGN
+        SPEC --> DESIGN
+        DESIGN --> TASKS
+        STORIES -.->|fallback| TASKS
+        TASKS --> IMPL
+        DESIGN -.->|fallback| IMPL
+        SPEC --> TESTS
+        IMPL --> TESTS
+    end
+
+    subgraph project ["Project-Wide (independent)"]
+        direction LR
+        ADR["needs-adr"]
+        ARCH["needs-architecture"]
+        DEPS["needs-dependencies"]
+        SEC["needs-security"]
+        COMP["needs-compliance"]
+    end
+
+    INTENT((Orchestrator<br/>proven-needs)) --> feature
+    INTENT --> project
+
+    DESIGN -.->|tech decisions| ADR
+    SEC -.->|delegates fixes| DEPS
+    IMPL -.->|divergences| INTENT
+    INTENT -.->|update design| DESIGN
+    INTENT -.->|fix code| IMPL
+
+    CONSTRAINTS[("constraints.adoc<br/><i>Checked at every step</i>")] -.->|enforced| feature
+    CONSTRAINTS -.->|enforced| project
+
+    style INTENT fill:#4CAF50,color:#fff,stroke:none
+    style CONSTRAINTS fill:#FF9800,color:#fff,stroke:none
+```
+
+**Key relationships:**
+- **Solid arrows** = primary dependency (required upstream artifact)
+- **Dotted arrows** = optional or fallback paths
+- `needs-spec` is always generated -- every feature gets a specification
+- `needs-design` requires both stories and spec
+- `needs-tasks` prefers design but can derive tasks directly from stories
+- `needs-implementation` prefers tasks but can work story-by-story from design alone
+- `needs-tests` derives test cases from specs and runs them against the implementation
+- `needs-design` can trigger `needs-adr` creation for technology decisions (lateral invocation)
+- `needs-security` delegates dependency vulnerability fixes to `needs-dependencies`
+- After implementation, divergences between design and code are reported to the orchestrator. The user decides per-divergence whether to update the design or fix the code.
+
+Independent features can be processed concurrently.
+
+### Artifact Traceability
+
+Each capability reads upstream artifacts and writes its own. The two diagrams below separate ownership (writes) from dependencies (reads) for clarity.
+
+#### Artifact Ownership (writes)
+
+Each capability owns and produces specific artifacts. `state-log.adoc` is managed by the orchestrator.
+
+```mermaid
+flowchart LR
+    subgraph feature ["Feature Pipeline"]
+        NS["needs-stories"] --> STORIES[("user-stories.adoc")]
+        NSP["needs-spec"] --> SPEC[("spec.adoc")]
+        NADR["needs-adr"] --> ADRS[("docs/adrs/")]
+        ND["needs-design"] --> DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
+        NT["needs-tasks"] --> TASKS[("tasks.adoc")]
+        NI["needs-implementation"] --> CODE[("source code")]
+        NTS["needs-tests"] --> TESTFILES[("test files")]
+    end
+
+    subgraph project ["Project-wide"]
+        NARCH["needs-architecture"] --> ARCH[("architecture.adoc")]
+        NDEPS["needs-dependencies"] --> DEPS[("package manifests<br/>lockfiles")]
+        NSEC["needs-security"] --> CODE2[("source code")]
+        NCOMP["needs-compliance"] --> DEPS2[("package manifests")]
+    end
+
+    style feature fill:transparent,stroke:#555,stroke-width:1px
+    style project fill:transparent,stroke:#555,stroke-width:1px
+```
+
+#### Artifact Dependencies (reads)
+
+Solid lines are primary inputs; dashed lines are fallback or optional inputs. All capabilities also read `constraints.adoc` during their Evaluate phase (omitted for clarity).
+
+```mermaid
+flowchart RL
+    subgraph artifacts ["Artifacts"]
+        STORIES[("user-stories.adoc")]
+        SPEC[("spec.adoc")]
+        ADRS[("docs/adrs/")]
+        DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
+        TASKS[("tasks.adoc")]
+        CODE[("source code")]
+        DEPS[("package manifests<br/>lockfiles")]
+    end
+
+    subgraph feature ["Feature Pipeline"]
+        NSP["needs-spec"]
+        ND["needs-design"]
+        NT["needs-tasks"]
+        NI["needs-implementation"]
+        NTS["needs-tests"]
+    end
+
+    subgraph project ["Project-wide"]
+        NARCH["needs-architecture"]
+        NDEPS["needs-dependencies"]
+        NSEC["needs-security"]
+        NCOMP["needs-compliance"]
+    end
+
+    %% ── Feature reads (solid = primary) ───────────────────────
+    STORIES -->|reads| NSP
+    STORIES -->|reads| ND
+    SPEC -->|reads| ND
+    SPEC -->|reads| NTS
+    DESIGN -->|reads| NT
+    TASKS -->|reads| NI
+
+    %% ── Feature reads (dashed = fallback / optional) ──────────
+    STORIES -.->|fallback| NT
+    DESIGN -.->|fallback| NI
+    DESIGN -.->|reads| NTS
+    CODE -.->|reads| NTS
+    ADRS -.->|reads| ND
+
+    %% ── Project-wide reads ────────────────────────────────────
+    DESIGN -.->|reads| NARCH
+    ADRS -.->|reads| NARCH
+    CODE -.->|reads| NARCH
+    DEPS -->|reads| NDEPS
+    CODE -->|reads| NSEC
+    DEPS -.->|reads| NSEC
+    DEPS -->|reads| NCOMP
+
+    style artifacts fill:transparent,stroke:#555,stroke-width:1px
+    style feature fill:transparent,stroke:#555,stroke-width:1px
+    style project fill:transparent,stroke:#555,stroke-width:1px
+```
+
+| Capability | Reads | Writes |
+|---|---|---|
+| `needs-stories` | `constraints.adoc` | `user-stories.adoc` |
+| `needs-spec` | `user-stories.adoc`, `constraints.adoc` | `spec.adoc` |
+| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
+| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `constraints.adoc` | `tasks.adoc` |
+| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `constraints.adoc`, ADRs | source code |
+| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc`, source code | test files |
+| `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
+| `needs-architecture` | all feature designs, ADRs, `constraints.adoc`, codebase | `docs/architecture.adoc` |
+| `needs-dependencies` | package manifests, `constraints.adoc` | package manifests, lockfiles |
+| `needs-security` | codebase, dependencies, config, `constraints.adoc` | source code, config |
+| `needs-compliance` | dependencies, `constraints.adoc` | dependencies, `constraints.adoc` |
+
+## Entry Point
+
+Load the `proven-needs` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
 
 ```
-Feature Description -> User Stories -> Specifications -> Design
-                       (needs-user-story)  (needs-spec)     |
-                                                        +----+----+
-                                                        |         |
-                                                      ADRs    Architecture
-                                                   (needs-adr) (needs-architecture)
+I want users to be able to browse products, add them to cart, and checkout
 ```
 
-1. Describe the feature you want to build
-2. Generate user stories with acceptance criteria (`needs-user-story` skill)
-3. Derive categorized, black-box testable specifications (`needs-spec` skill)
-4. Design the implementation that solves the stories (`needs-design` skill)
-   - Record technology decisions as ADRs (`needs-adr` skill)
-   - Document the resulting architecture (`needs-architecture` skill)
+The orchestrator will:
+1. Decompose this into feature packages (product-browsing, shopping-cart, checkout)
+2. Ask you to confirm the grouping
+3. For each feature: create stories, derive specs, design, plan tasks, implement, generate tests
+4. Resolve any design divergences (user decides: update design or fix code)
+5. Record technology decisions as ADRs along the way
+6. Update the architecture document when all features are implemented
 
-### Artifact Lifecycle
+## Core Concepts
+
+### Desired State
+A declarative statement of what must be true. Not a task list -- an intent.
+
+- "Users can reset their password via SMS" (feature)
+- "No dependencies have known vulnerabilities" (maintenance)
+- "All API endpoints enforce rate limiting" (constraint)
+
+### Constraints
+Project-wide invariants that must not be violated. Defined in `constraints.adoc`:
+
+- License compliance rules
+- Security policies
+- Architecture boundaries
+- Quality standards
+- Performance SLAs
+
+Cross-cutting requirements belong here, not in feature specs.
+
+### Feature Packages
+Self-contained units of work at `docs/features/<slug>/`:
+
+```
+docs/features/shopping-cart/
+├── user-stories.adoc    # WHY: user needs
+├── spec.adoc            # WHAT: testable requirements
+├── design.adoc          # HOW: implementation blueprint
+└── tasks.adoc           # WORK: phased task breakdown
+```
+
+Each feature is fully independent -- it can be specified, designed, and implemented without reading other features.
+
+Features can be **archived** when superseded or no longer relevant. Archived features remain on disk as historical records but are skipped during intent classification.
+
+### State Log
+Append-only audit trail at `docs/state-log.adoc` recording every transition: what was intended, what changed, what was verified.
+
+## Capabilities
+
+### Feature-Scoped (operate within a feature package)
+
+| Capability | Skill | What it does |
+|---|---|---|
+| Stories | `needs-stories` | Create user stories explaining WHY |
+| Specifications | `needs-spec` | Derive black-box testable requirements (WHAT) |
+| Design | `needs-design` | Create implementation blueprint (HOW) |
+| Tasks | `needs-tasks` | Break design into phased coding units |
+| Implementation | `needs-implementation` | Write and verify code |
+| Tests | `needs-tests` | Derive and generate tests from specifications (VERIFY) |
+
+### Project-Wide (operate at the project level)
+
+| Capability | Skill | What it does |
+|---|---|---|
+| ADRs | `needs-adr` | Record technology decisions |
+| Architecture | `needs-architecture` | Document current system architecture |
+| Dependencies | `needs-dependencies` | Manage and update dependency graph |
+| Security | `needs-security` | Assess and remediate security posture |
+| Compliance | `needs-compliance` | Verify license and policy compliance |
+
+### Supporting
+
+| Skill | What it does |
+|---|---|
+| `ears-requirements` | EARS methodology reference for stories and specs |
+
+Every capability follows the **observe/evaluate/execute** pattern:
+
+```mermaid
+flowchart TD
+    O["Observe<br/><i>Read artifacts, codebase,<br/>constraints in this domain</i>"]
+    E["Evaluate<br/><i>Does desired state require action?<br/>Do constraints allow it?</i>"]
+    X["Execute<br/><i>Make the minimum changes.<br/>Create or update artifacts.</i>"]
+
+    O --> E
+    E -->|Action needed| X
+    E -->|"Already current"| DONE["Report: no action needed"]
+    E -->|"Constraint violation"| BLOCK["Report violation<br/>to orchestrator"]
+    X --> VERIFY["Verify output"]
+    VERIFY --> REPORT["Return result<br/>to orchestrator"]
+
+    style DONE fill:#4CAF50,color:#fff,stroke:none
+    style BLOCK fill:#f44336,color:#fff,stroke:none
+    style REPORT fill:#2196F3,color:#fff,stroke:none
+```
+
+1. **Observe** -- assess current state in this domain
+2. **Evaluate** -- does the desired state require action? do constraints allow it?
+3. **Execute** -- make the minimum changes
+
+## Artifact Lifecycle
 
 | Artifact | Location | Lifecycle |
 |---|---|---|
-| User Stories | `user-stories.adoc` | Living document, versioned with SemVer |
-| Specifications | `docs/specs/` | Living document, synced with user stories |
-| Design Document | `docs/design/` | Ephemeral -- invalid after stories/specs change or implementation completes |
-| ADRs | `docs/adrs/` | Permanent, append-only records |
-| Architecture | `docs/architecture.adoc` | Living document reflecting current system state |
+| Constraints | `constraints.adoc` | Stable, changes rarely |
+| User Stories | `docs/features/<slug>/user-stories.adoc` | Living, versioned per feature |
+| Specifications | `docs/features/<slug>/spec.adoc` | Living, synced with stories |
+| Design | `docs/features/<slug>/design.adoc` | Living, synced with stories and specs |
+| Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- stale when design changes |
+| Tests | `tests/features/<slug>/` | Living, synced with specs |
+| ADRs | `docs/adrs/NNNN-title.adoc` | Permanent, append-only |
+| Architecture | `docs/architecture.adoc` | Living, reflects current system |
+| State Log | `docs/state-log.adoc` | Append-only audit trail |
+| Code | project source | Living -- the actual system |
 
-## Skills
+### Version Tracking and Staleness
 
-This project provides six [OpenCode skills](https://opencode.ai/docs/skills/) that work together:
+Each downstream artifact tracks its upstream version. When an upstream artifact changes, downstream artifacts become stale and need syncing.
 
-### `needs-user-story`
+```mermaid
+flowchart LR
+    S["user-stories.adoc<br/>:version:"]
+    SP["spec.adoc<br/>:source-stories-version:"]
+    D["design.adoc<br/>:source-stories-version:<br/>:source-spec-version:"]
+    T["tasks.adoc<br/>:source-design-version:<br/>:source-stories-version:<br/>:source-spec-version:"]
 
-Generate user stories from feature descriptions. The agent loads this skill when asked to create user stories, break down requirements, or generate acceptance criteria.
+    S -->|tracked by| SP
+    S -->|tracked by| D
+    SP -->|tracked by| D
+    S -->|tracked by| T
+    SP -->|tracked by| T
+    D -->|tracked by| T
 
-Ask the agent to generate stories by describing what you want:
-
-```
-Create user stories for a todo app where users can create, edit, delete tasks and mark them complete
-```
-
-```
-Write stories for social login with Google and GitHub alongside email/password authentication
-```
-
-The skill will:
-1. Analyse the description and decompose it into atomic user stories
-2. Write acceptance criteria using EARS sentence types
-3. Output stories in AsciiDoc format to `user-stories.adoc` with SemVer versioning
-
-Subsequent runs append new stories to the same file under appropriate feature sections and bump the version.
-
-### `needs-spec`
-
-Create and maintain technical specifications from user stories. The agent loads this skill when asked to create specifications, sync specs with stories, or review requirement coverage.
-
-Ask the agent to generate specifications after creating user stories:
-
-```
-Create specifications from the user stories
+    style S fill:#4CAF50,color:#fff,stroke:none
+    style SP fill:#2196F3,color:#fff,stroke:none
+    style D fill:#FF9800,color:#fff,stroke:none
+    style T fill:#9C27B0,color:#fff,stroke:none
 ```
 
-```
-Sync specifications with updated user stories
-```
+When stories change, specs become stale. When specs change, the design becomes stale. When the design changes, tasks become stale. The orchestrator detects these cascades during the Evaluate phase and includes sync steps in the transition plan.
 
-The skill will:
-1. Read user stories and their version from `user-stories.adoc`
-2. Analyze and propose requirement categories (with user confirmation)
-3. Derive black-box testable EARS requirements
-4. Write categorized specification files to `docs/specs/`
-5. On subsequent runs, detect changes and sync specifications
+## Risk Classification
 
-### `needs-design`
+Transitions are auto-approved or require confirmation based on risk:
 
-Create implementation design documents that solve the user stories. The agent loads this skill when asked to design a feature, create an implementation plan, or bridge specifications to code.
+| Risk | Auto-approve? | Examples |
+|---|---|---|
+| **Low** | Yes | Patch dependency updates, metadata fixes |
+| **Medium** | Propose, ask | Minor dependency updates, spec syncs |
+| **High** | Full plan, require approval | New features, architecture changes, code changes |
 
-Ask the agent to create a design after specs exist:
+## EARS Requirements
 
-```
-Design the implementation for the user stories
-```
-
-```
-Create an implementation plan for the e-commerce features
-```
-
-The skill will:
-1. Read user stories (primary driver), specs (testable requirements), and ADRs (technology decisions)
-2. Identify technology decisions and unknowns -- offer to create ADRs for significant decisions
-3. Design the system: components, data model, interfaces
-4. Map every user story to its solution in the design (story resolution)
-5. Write design artifacts to `docs/design/`
-
-The design document tracks `:source-stories-version:` and `:source-specs-version:` and has a `:status:` field (`Current`, `Stale`, `Implemented`).
-
-### `needs-adr`
-
-Create and manage Architecture Decision Records. The agent loads this skill when asked to record a technical decision, document a technology choice, or when the design skill identifies decisions that need recording.
-
-```
-Record a decision to use PostgreSQL for the database
-```
-
-```
-Create an ADR for choosing Next.js as the framework
-```
-
-The skill will:
-1. Determine the next ADR sequence number
-2. Gather context, decision, consequences, and alternatives
-3. Write the ADR to `docs/adrs/NNNN-title.adoc`
-4. Update `docs/adrs/index.adoc`
-
-ADRs are permanent, append-only records. Decisions are never deleted -- they are superseded or deprecated.
-
-### `needs-architecture`
-
-Create and maintain the system architecture document. The agent loads this skill when asked to document or update the architecture, or after a design has been implemented.
-
-```
-Document the system architecture
-```
-
-```
-Update the architecture after implementing the new features
-```
-
-The skill will:
-1. **Greenfield projects:** Generate architecture from the design document
-2. **Existing projects:** Analyze the codebase and reconcile with the design document
-3. Write `docs/architecture.adoc` as a living snapshot of the current system
-
-### `ears-requirements`
-
-Write and review requirements using the EARS methodology. The agent loads this skill when writing, translating, or reviewing requirements in EARS format. Used as a prerequisite by both `needs-user-story` and `needs-spec`.
-
-## EARS Acceptance Criteria
-
-Each acceptance criterion uses one of the EARS sentence types:
+Acceptance criteria and specifications use [EARS sentence types](skills/ears-requirements/references/ears-reference.adoc):
 
 | Type | Pattern | Use for |
 |------|---------|---------|
@@ -154,89 +387,48 @@ Each acceptance criterion uses one of the EARS sentence types:
 | Unwanted behavior | If \<trigger\>, then the \<system\> shall \<response\>. | Errors and edge cases |
 | Optional | Where \<feature\>, the \<system\> shall \<response\>. | Feature-dependent behavior |
 
-See the [EARS quick reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) for the full guide.
+## Example
 
-## Example: User Stories
+Given the intent: "I want an e-commerce site where users can browse products, add them to cart, and checkout"
 
-Given: "user login and registration system"
+The orchestrator produces:
 
-```asciidoc
-= User Stories
-:version: 1.0.0
-:last-updated: 2026-02-20
-:toc:
+```
+docs/features/
+├── product-browsing/
+│   ├── user-stories.adoc   # 2 stories: View Catalog, Search
+│   ├── spec.adoc            # PROD-001 through PROD-008
+│   ├── design.adoc          # Frontend + API design
+│   └── tasks.adoc           # 3 phases, 8 tasks
+├── shopping-cart/
+│   ├── user-stories.adoc   # 2 stories: Add to Cart, View Cart
+│   ├── spec.adoc            # CART-001 through CART-008
+│   ├── design.adoc          # CartService + UI design
+│   └── tasks.adoc           # 3 phases, 9 tasks
+└── checkout/
+    ├── user-stories.adoc   # 1 story: Checkout Process
+    ├── spec.adoc            # CHK-001 through CHK-006
+    ├── design.adoc          # Payment flow design
+    └── tasks.adoc           # 3 phases, 7 tasks
 
-== Authentication
+docs/adrs/
+├── index.adoc
+├── 0001-use-typescript.adoc
+├── 0002-use-postgresql.adoc
+└── 0003-use-stripe.adoc
 
-=== Story 1: User Registration
-As a new user,
-I want to create an account with email and password,
-so that I can access the application.
-
-Acceptance Criteria:
-* [ ] The system shall display a registration form with email and password fields.
-* [ ] The system shall enforce minimum password security requirements.
-* [ ] When the user submits the registration form, the system shall send an email verification link.
-* [ ] If the user submits an email that is already registered, then the system shall display an error message.
-* [ ] When registration is successful, the system shall redirect to the login page or dashboard.
-
-=== Story 2: User Login
-As a registered user,
-I want to log in with email and password,
-so that I can access my account.
-
-Acceptance Criteria:
-* [ ] The system shall display a login form with email and password fields.
-* [ ] When the user submits valid credentials, the system shall redirect to the dashboard.
-* [ ] If the user submits invalid credentials, then the system shall display an error message.
-* [ ] The system shall provide a "remember me" option for persistent sessions.
-* [ ] The system shall provide a "forgot password" link on the login form.
-
-=== Story 3: Password Reset
-As a user who forgot their password,
-I want to reset my password via email,
-so that I can regain access to my account.
-
-Acceptance Criteria:
-* [ ] The system shall display a forgot-password form with an email field.
-* [ ] When the user submits a registered email, the system shall send a password reset link.
-* [ ] The system shall expire the reset link after a configured time period.
-* [ ] The system shall enforce minimum password security requirements for the new password.
-* [ ] When the password is successfully reset, the system shall display a confirmation message.
+docs/architecture.adoc
+docs/state-log.adoc
+constraints.adoc
 ```
 
-## Example: Specifications
+## What This Is Not
 
-Given the user stories above, `needs-spec` produces categorized specifications:
-
-```asciidoc
-= Authentication Requirements
-:version: 1.0.0
-:last-updated: 2026-02-20
-:toc:
-
-== AUTH-001
-The system shall display a registration form with email and password fields.
-
-Type:: Ubiquitous
-Source:: Story 1: User Registration, Criterion 1
-Verification:: Open the registration page. Confirm that email and password input fields are displayed.
-
-== AUTH-002
-The system shall enforce minimum password security requirements.
-
-Type:: Ubiquitous
-Source:: Story 1: User Registration, Criterion 2
-Verification:: Attempt to register with passwords of varying strength. Confirm that weak passwords are rejected with a descriptive message.
-
-== AUTH-003
-When the user submits the registration form with valid data, the system shall send an email verification link.
-
-Type:: Event-driven
-Source:: Story 1: User Registration, Criterion 3
-Verification:: Submit valid registration data and confirm that a verification email is received at the provided address.
-```
+- **Not waterfall** -- the desired state is disposable; declare a new one each iteration
+- **Not backlog-driven** -- work is derived each iteration, not accumulated in a backlog
+- **Not uncontrolled** -- constraints anchor behavior and prevent regressions
 
 ## Reference
 
-- [EARS Quick Reference](.opencode/skills/ears-requirements/reference/ears-reference.adoc) -- Full guide to the EARS requirement syntax standard
+- [EARS Quick Reference](skills/ears-requirements/references/ears-reference.adoc) -- Requirement syntax standard
+- [Example Session](skills/proven-needs/references/example-session.adoc) -- Full walkthrough of feature and maintenance intents

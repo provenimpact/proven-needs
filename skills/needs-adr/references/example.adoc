@@ -6,6 +6,8 @@ This file shows a complete example of an ADR index and two ADR files for an e-co
 
 ....
 = Architecture Decision Records
+:version: 1.0.0
+:last-updated: 2026-02-19
 :toc:
 
 [cols="1,3,1,1", options="header"]

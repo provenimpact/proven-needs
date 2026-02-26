@@ -1,47 +1,47 @@
 = Design Example
 
-This file shows a complete example of a design document for an e-commerce project. The user stories and specs from the needs-user-story and needs-spec examples are used as input.
+This file shows a complete design document for the `shopping-cart` feature of an e-commerce project. The feature's user stories and spec are used as input. The design includes Mermaid diagrams for component interactions and the primary user flow.
 
 == Context
 
 Given:
 
-* `user-stories.adoc` at version `1.0.0` with 5 stories across 3 features (Product Browsing, Shopping Cart, Checkout)
-* `docs/specs/` at version `1.0.0` with categories UI, SRCH, CART, CHK, ERR, NOTIF
+* `docs/features/shopping-cart/user-stories.adoc` at version `1.0.0` with 2 stories: US-001 (Add to Cart), US-002 (View Cart)
+* `docs/features/shopping-cart/spec.adoc` at version `1.0.0` with prefix CART (8 requirements)
 * `docs/adrs/0001-use-typescript.adoc` (Accepted)
 * `docs/adrs/0002-use-postgresql.adoc` (Accepted)
+* `docs/adrs/0003-use-nextjs.adoc` (Accepted)
+* `constraints.adoc` with architecture constraint: "Business logic resides in the service layer"
 
-== Main Design File (docs/design/design.adoc)
+== Design File (docs/features/shopping-cart/design.adoc)
 
 ....
-= Design Document
+= Design: Shopping Cart
 :version: 1.0.0
 :status: Current
 :source-stories-version: 1.0.0
-:source-specs-version: 1.0.0
+:source-spec-version: 1.0.0
 :last-updated: 2026-02-20
+:feature: shopping-cart
 :toc:
 
 == Technical Context
 
-Greenfield e-commerce web application. Users browse products, manage a shopping cart, and complete purchases. No existing codebase.
+Adding cart management to an existing e-commerce web application built with Next.js and PostgreSQL. The product browsing feature is already implemented. Users need to add products to a cart, adjust quantities, and review their cart before checkout.
 
 == Decisions and Constraints
 
-* <<../adrs/0001-use-typescript.adoc#,ADR-0001>>: Use TypeScript for backend and frontend
-* <<../adrs/0002-use-postgresql.adoc#,ADR-0002>>: Use PostgreSQL for persistence
-* <<../adrs/0003-use-nextjs.adoc#,ADR-0003>>: Use Next.js as the fullstack framework
-* <<../adrs/0004-use-stripe.adoc#,ADR-0004>>: Use Stripe for payment processing
+* <<../../adrs/0001-use-typescript.adoc#,ADR-0001>>: Use TypeScript for backend and frontend
+* <<../../adrs/0002-use-postgresql.adoc#,ADR-0002>>: Use PostgreSQL for persistence
+* <<../../adrs/0003-use-nextjs.adoc#,ADR-0003>>: Use Next.js as the fullstack framework
 
-ADR-0003 and ADR-0004 were created during Phase 0 of this design process.
+Architecture constraint: Business logic resides in the service layer, not in route handlers.
 
 == Research and Unknowns
 
 === Resolved
 
-Framework selection:: Next.js chosen for server-side rendering (SEO for product pages) and API routes (backend endpoints in the same project). See ADR-0003.
-
-Payment processing:: Stripe chosen for PCI compliance and hosted checkout. See ADR-0004.
+Cart persistence strategy:: Use database-backed carts with session_id for anonymous users. CartContext (React Context) provides client-side state. Synced with backend on mutations.
 
 === Open Questions
 
@@ -49,118 +49,128 @@ None.
 
 == System Design
 
+=== Component Interaction
+
+[source,mermaid]
+----
+flowchart LR
+  subgraph Frontend
+    PC[ProductCard]
+    CP[Cart Page]
+    CC[CartContext]
+    CI[CartIcon]
+  end
+
+  subgraph API["API Routes"]
+    POST_CART["POST /api/cart/items"]
+    PATCH_CART["PATCH /api/cart/items/:id"]
+    DELETE_CART["DELETE /api/cart/items/:id"]
+  end
+
+  subgraph Service["Service Layer"]
+    CS[CartService]
+  end
+
+  DB[(PostgreSQL)]
+
+  PC -->|add item| POST_CART
+  CP -->|update qty| PATCH_CART
+  CP -->|remove item| DELETE_CART
+  POST_CART --> CS
+  PATCH_CART --> CS
+  DELETE_CART --> CS
+  CS --> DB
+  POST_CART -->|response| CC
+  PATCH_CART -->|response| CC
+  DELETE_CART -->|response| CC
+  CC --> CI
+  CC --> CP
+----
+
+=== Add-to-Cart Flow
+
+[source,mermaid]
+----
+sequenceDiagram
+  actor User
+  participant PC as ProductCard
+  participant CC as CartContext
+  participant API as POST /api/cart/items
+  participant CS as CartService
+  participant DB as PostgreSQL
+
+  User->>PC: Click "Add to Cart"
+  PC->>API: POST {productId, quantity}
+  API->>CS: addItem(sessionId, productId, qty)
+  CS->>DB: Check stock availability
+  DB-->>CS: Stock OK
+  CS->>DB: Upsert CartItem (increment if exists)
+  DB-->>CS: Updated cart
+  CS-->>API: Cart response
+  API-->>PC: 200 OK + updated cart
+  PC->>CC: Update cart state
+  CC-->>PC: Show success toast
+  CC->>PC: Update CartIcon count
+----
+
 === Frontend
 
-==== Product Catalog Page
-Server-rendered page using Next.js. Fetches products from the API with pagination and search. Renders product cards with image, name, price, and "Add to Cart" button.
-
 ==== Cart Page
-Client-side interactive page. Reads cart state from CartContext. Renders line items with quantity controls and a running total. "Proceed to Checkout" button navigates to the checkout flow.
-
-==== Checkout Page
-Multi-step form: shipping address, payment (Stripe Elements), order review. Submits order to the API on confirmation.
+Client-side interactive page. Reads cart state from CartContext. Renders line items with quantity controls and a running total. "Proceed to Checkout" navigates to the checkout flow.
 
 ==== Shared Components
-* `ProductCard` -- displays a single product summary
-* `CartIcon` -- header icon showing item count from CartContext
-* `SearchBar` -- text input with debounced search, triggers product catalog filtering
+* `CartIcon` -- header icon showing item count from CartContext, links to Cart Page
+* Add-to-cart button integrated into existing ProductCard component
 
 === Backend (API Routes)
 
-==== GET /api/products
-Returns paginated product list. Supports `?q=` for text search and `?page=` for pagination.
-
-==== GET /api/products/:id
-Returns a single product with full details.
-
 ==== POST /api/cart/items
-Adds an item to the cart. Body: `{ productId, quantity }`. Validates stock availability.
+Adds an item to the cart. Body: `{ productId, quantity }`. Creates cart with session_id if none exists. Validates stock availability via CartService. Returns updated cart.
 
 ==== PATCH /api/cart/items/:id
-Updates quantity of a cart item. Body: `{ quantity }`. Validates stock.
+Updates quantity of a cart item. Body: `{ quantity }`. Validates stock via CartService.
 
 ==== DELETE /api/cart/items/:id
-Removes an item from the cart.
+Removes an item from the cart. Returns 204 on success.
 
-==== POST /api/checkout
-Creates an order from the current cart. Validates stock, calculates totals, creates Stripe PaymentIntent, persists order. Returns order confirmation.
+=== Service Layer
+
+==== CartService
+Business logic for cart operations. Enforces stock validation, quantity constraints, and duplicate handling. Called by API route handlers (not business logic in routes -- per architecture constraint).
 
 === State Management
 
-CartContext (React Context) holds the current cart state client-side. Synced with the backend on mutations. Persisted in localStorage for anonymous users.
-
-=== External Integrations
-
-Stripe:: Payment processing via Stripe SDK. Server-side: create PaymentIntents. Client-side: Stripe Elements for card input.
+CartContext (React Context) holds client-side cart state. Synced with backend on mutations. Persisted in localStorage for anonymous users.
 
 == Story Resolution
 
-=== Story 1: Browse Products
+=== US-001: Add to Cart
 
-Components:: Product Catalog Page, ProductCard, GET /api/products
+Components:: ProductCard (existing), CartContext, CartIcon, POST /api/cart/items, CartService
 Criteria::
-* Display paginated product list -> Product Catalog Page renders ProductCard components from GET /api/products (UI-001)
-* Show product image, name, price -> ProductCard component displays these fields (UI-002)
-* Load more products on scroll -> Pagination via `?page=` parameter, infinite scroll on frontend (UI-003)
+* Display add-to-cart button on each product -> ProductCard shows button (CART-001)
+* Update cart count in header -> POST /api/cart/items via CartService, CartContext updates, CartIcon reflects count (CART-002)
+* Display success confirmation -> Frontend displays toast after successful add (CART-003)
+* Increment quantity for duplicate -> CartService increments quantity if product already in cart (CART-004)
 
-=== Story 2: Search Products
+=== US-002: View Cart
 
-Components:: SearchBar, Product Catalog Page, GET /api/products
+Components:: Cart Page, CartContext, PATCH/DELETE /api/cart/items, CartService
 Criteria::
-* Search by product name -> SearchBar sends `?q=` to GET /api/products, backend does text search on product name (SRCH-001)
-* Display matching results -> Product Catalog Page re-renders with filtered results (SRCH-002)
-* Show "no results" message -> Frontend displays empty state when API returns zero products (SRCH-003, ERR-001)
-
-=== Story 3: Manage Shopping Cart
-
-Components:: CartContext, Cart Page, POST/PATCH/DELETE /api/cart/items
-Criteria::
-* Add item to cart -> POST /api/cart/items, CartContext updates, CartIcon reflects count (CART-001)
-* Update quantity -> PATCH /api/cart/items/:id with new quantity (CART-002)
-* Remove item -> DELETE /api/cart/items/:id (CART-003)
-* Display running total -> Cart Page computes total from CartContext line items (CART-004)
-* If item out of stock, show error -> API validates stock on add/update, returns 409, frontend shows error message (ERR-002)
-
-=== Story 4: Checkout
-
-Components:: Checkout Page, POST /api/checkout, Stripe integration
-Criteria::
-* Enter shipping address -> Checkout Page step 1: address form with validation (CHK-001)
-* Enter payment details -> Checkout Page step 2: Stripe Elements card input (CHK-002)
-* Review order before confirming -> Checkout Page step 3: order summary with line items and totals (CHK-003)
-* Receive order confirmation -> POST /api/checkout returns order ID and confirmation, frontend displays success page (CHK-004, NOTIF-001)
-
-=== Story 5: Order Confirmation Email
-
-Components:: POST /api/checkout, email service
-Criteria::
-* Receive email after purchase -> POST /api/checkout triggers email via transactional email service after successful payment (NOTIF-002)
-* Email contains order details -> Email template includes order ID, line items, totals, shipping address (NOTIF-003)
+* Display cart items with quantities -> Cart Page reads CartContext and renders line items (CART-005)
+* Display prices and total -> Cart Page computes and shows item prices and cart total (CART-006)
+* Update total on quantity change -> PATCH /api/cart/items via CartService, CartContext updates, Cart Page re-renders (CART-007)
+* Remove item and update total -> DELETE /api/cart/items via CartService, CartContext updates, Cart Page removes item (CART-008)
 ....
 
-== Data Model File (docs/design/data-model.adoc)
+== Data Model File (docs/features/shopping-cart/data-model.adoc)
 
 ....
-= Data Model
+= Data Model: Shopping Cart
 :version: 1.0.0
 :last-updated: 2026-02-20
+:feature: shopping-cart
 :toc:
-
-== Product
-
-[cols="1,1,2", options="header"]
-|===
-| Field | Type | Notes
-
-| id | UUID | Primary key
-| name | VARCHAR(255) | Required, indexed for search
-| description | TEXT | Optional
-| price | DECIMAL(10,2) | Required, >= 0
-| image_url | VARCHAR(500) | Required
-| stock_quantity | INTEGER | Required, >= 0
-| created_at | TIMESTAMP | Auto-set
-| updated_at | TIMESTAMP | Auto-updated
-|===
 
 == Cart
 
@@ -182,43 +192,21 @@ Criteria::
 
 | id | UUID | Primary key
 | cart_id | UUID | FK -> Cart, indexed
-| product_id | UUID | FK -> Product
+| product_id | UUID | FK -> Product (from product-browsing feature)
 | quantity | INTEGER | Required, >= 1
-|===
-
-== Order
-
-[cols="1,1,2", options="header"]
-|===
-| Field | Type | Notes
-
-| id | UUID | Primary key
-| cart_id | UUID | FK -> Cart
-| status | ENUM | pending, paid, shipped, cancelled
-| total | DECIMAL(10,2) | Computed at checkout
-| shipping_address | JSONB | Address fields
-| stripe_payment_id | VARCHAR(255) | Stripe PaymentIntent ID
-| created_at | TIMESTAMP | Auto-set
-|===
-
-== OrderItem
-
-[cols="1,1,2", options="header"]
-|===
-| Field | Type | Notes
-
-| id | UUID | Primary key
-| order_id | UUID | FK -> Order, indexed
-| product_id | UUID | FK -> Product
-| quantity | INTEGER | Snapshot from CartItem
-| unit_price | DECIMAL(10,2) | Snapshot from Product at time of order
 |===
 
 == Relationships
 
 * Cart 1--* CartItem
-* CartItem *--1 Product
-* Order 1--* OrderItem
-* OrderItem *--1 Product
-* Order 1--1 Cart (order created from cart)
+* CartItem *--1 Product (cross-feature reference to existing entity)
 ....
+
+== Notes
+
+- The design is scoped entirely to the shopping-cart feature
+- It references project-wide ADRs but does not depend on other feature designs
+- The Product entity is from the product-browsing feature -- the cart references it via foreign key but does not redefine it
+- Architecture constraint is explicitly respected: CartService contains business logic, route handlers only delegate
+- The component interaction diagram shows all components and their communication paths
+- The sequence diagram traces the primary add-to-cart flow through all layers
