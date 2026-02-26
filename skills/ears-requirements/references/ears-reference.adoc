@@ -206,7 +206,7 @@ Some requirements demand tolerance without active response (passive), others req
 
 EARS was originally described in:
 
-* Mavin, A., Wilkinson, P., Harwood, A., and Novak, M., "Easy Approach to Requirements Syntax (EARS)", Proceedings of the 17th IEEE International Requirements Engineering Conference (RE), 2009. Link: https://ieeexplore.ieee.org/document/5328509
+* Mavin, A., Wilkinson, P., Harwood, A., and Novak, M., "Easy Approach to Requirements Syntax (EARS)", Proceedings of the 17th IEEE International Requirements Engineering Conference (RE), 2009.
 
 Completeness techniques, lessons on requirement pairing, passive/active distinctions, and additional troubleshooting guidance are informed by:
 
