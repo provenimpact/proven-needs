@@ -82,7 +82,7 @@ flowchart LR
         COMP["needs-compliance"]
     end
 
-    INTENT((Orchestrator<br/>proven-intent)) --> feature
+    INTENT((Orchestrator<br/>proven-needs)) --> feature
     INTENT --> project
 
     DESIGN -.->|tech decisions| ADR
@@ -219,7 +219,7 @@ flowchart RL
 
 ## Entry Point
 
-Load the `proven-intent` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
+Load the `proven-needs` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
 
 ```
 I want users to be able to browse products, add them to cart, and checkout
@@ -431,4 +431,4 @@ constraints.adoc
 ## Reference
 
 - [EARS Quick Reference](skills/ears-requirements/references/ears-reference.adoc) -- Requirement syntax standard
-- [Example Session](skills/proven-intent/references/example-session.adoc) -- Full walkthrough of feature and maintenance intents
+- [Example Session](skills/proven-needs/references/example-session.adoc) -- Full walkthrough of feature and maintenance intents

@@ -1,5 +1,5 @@
 ---
-name: proven-intent
+name: proven-needs
 description: Intent-driven state transition workflow for evolving software systems. Declare a desired state, evaluate it against reality and constraints, then execute the minimal valid transition. Use when asked to implement a feature, fix something, update dependencies, improve quality, or make any change to the system. This is the single entry point — it observes current state, classifies the intent, evaluates feasibility against constraints, derives a transition plan, and orchestrates the appropriate needs-* capabilities. Also use when asked about the development workflow, how features are organized, or the overall process.
 ---
 
@@ -832,19 +832,19 @@ Feature specifications describe only externally observable behavior. Internal ar
 
 ## Bootstrap
 
-When this skill is loaded, **immediately** check the project's `AGENTS.md` for the proven-intent workflow marker.
+When this skill is loaded, **immediately** check the project's `AGENTS.md` for the proven-needs workflow marker.
 
 ```mermaid
 flowchart TD
     START["Read AGENTS.md"] --> EXISTS{"File<br/>exists?"}
 
-    EXISTS -->|No| APPEND["Append proven-intent<br/>block to new file"]
-    EXISTS -->|Yes| MARKER{"proven-intent<br/>marker found?"}
+    EXISTS -->|No| APPEND["Append proven-needs<br/>block to new file"]
+    EXISTS -->|Yes| MARKER{"proven-needs<br/>marker found?"}
 
     MARKER -->|Yes| DONE["Do nothing<br/>(already bootstrapped)"]
     MARKER -->|No| LEGACY{"Legacy<br/>proven-needs<br/>marker found?"}
 
-    LEGACY -->|Yes| REPLACE["Replace proven-needs<br/>block with<br/>proven-intent block"]
+    LEGACY -->|Yes| REPLACE["Replace proven-needs<br/>block with<br/>proven-needs block"]
     LEGACY -->|No| APPEND
 
     REPLACE --> INFORM["Inform user<br/>AGENTS.md updated"]
@@ -854,19 +854,19 @@ flowchart TD
 ### Steps
 
 1. Read `AGENTS.md` in the project root (it may not exist yet).
-2. Search for the marker `<!-- proven-intent:start -->`.
+2. Search for the marker `<!-- proven-needs:start -->`.
 3. **If the marker is found** -- do nothing, the project is already bootstrapped.
 4. **If the marker is NOT found** -- check for the legacy marker `<!-- proven-needs:start -->`. If found, replace the entire block (from `<!-- proven-needs:start -->` to `<!-- proven-needs:end -->`) with the new block below. If neither marker exists, append the new block.
 
 ```markdown
-<!-- proven-intent:start -->
+<!-- proven-needs:start -->
 ## Development Workflow
-This project uses the proven-intent state transition workflow.
+This project uses the proven-needs state transition workflow.
 To make changes, declare a desired state and the system will derive
 the minimal valid transition: Observe → Evaluate → Derive → Execute → Validate.
 Feature work is organized in `docs/features/`. Project constraints are in `constraints.adoc`.
-Load the `proven-intent` skill to start.
-<!-- proven-intent:end -->
+Load the `proven-needs` skill to start.
+<!-- proven-needs:end -->
 ```
 
 5. Inform the user that `AGENTS.md` was updated.
