@@ -59,18 +59,19 @@ flowchart LR
         SPEC["needs-spec<br/><i>WHAT</i>"]
         DESIGN["needs-design<br/><i>HOW</i>"]
         TASKS["needs-tasks<br/><i>WORK</i>"]
-        IMPL["needs-implementation<br/><i>CODE</i>"]
         TESTS["needs-tests<br/><i>VERIFY</i>"]
+        IMPL["needs-implementation<br/><i>CODE</i>"]
 
         STORIES --> SPEC
         STORIES --> DESIGN
         SPEC --> DESIGN
         DESIGN --> TASKS
         STORIES -.->|fallback| TASKS
-        TASKS --> IMPL
-        DESIGN -.->|fallback| IMPL
         SPEC --> TESTS
-        IMPL --> TESTS
+        DESIGN -.->|optional| TESTS
+        TASKS --> IMPL
+        TESTS --> IMPL
+        DESIGN -.->|fallback| IMPL
     end
 
     subgraph project ["Project-Wide (independent)"]
@@ -105,7 +106,7 @@ flowchart LR
 - `needs-design` requires both stories and spec
 - `needs-tasks` prefers design but can derive tasks directly from stories
 - `needs-implementation` prefers tasks but can work story-by-story from design alone
-- `needs-tests` derives test cases from specs and runs them against the implementation
+- `needs-tests` derives test cases from specs *before* implementation -- tests are the acceptance gate for `needs-implementation`
 - `needs-design` can trigger `needs-adr` creation for technology decisions (lateral invocation)
 - `needs-security` delegates dependency vulnerability fixes to `needs-dependencies`
 - After implementation, divergences between design and code are reported to the orchestrator. The user decides per-divergence whether to update the design or fix the code.
@@ -186,7 +187,6 @@ flowchart RL
     STORIES -.->|fallback| NT
     DESIGN -.->|fallback| NI
     DESIGN -.->|reads| NTS
-    CODE -.->|reads| NTS
     ADRS -.->|reads| ND
 
     %% ── Project-wide reads ────────────────────────────────────
@@ -210,7 +210,7 @@ flowchart RL
 | `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
 | `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `constraints.adoc` | `tasks.adoc` |
 | `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `constraints.adoc`, ADRs | source code |
-| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc`, source code | test files |
+| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc` | test files |
 | `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
 | `needs-architecture` | all feature designs, ADRs, `constraints.adoc`, codebase | `docs/architecture.adoc` |
 | `needs-dependencies` | package manifests, `constraints.adoc` | package manifests, lockfiles |
@@ -228,7 +228,7 @@ I want users to be able to browse products, add them to cart, and checkout
 The orchestrator will:
 1. Decompose this into feature packages (product-browsing, shopping-cart, checkout)
 2. Ask you to confirm the grouping
-3. For each feature: create stories, derive specs, design, plan tasks, implement, generate tests
+3. For each feature: create stories, derive specs, design, plan tasks, generate tests, implement
 4. Resolve any design divergences (user decides: update design or fix code)
 5. Record technology decisions as ADRs along the way
 6. Update the architecture document when all features are implemented
@@ -281,8 +281,8 @@ Append-only audit trail at `docs/state-log.adoc` recording every transition: wha
 | Specifications | `needs-spec` | Derive black-box testable requirements (WHAT) |
 | Design | `needs-design` | Create implementation blueprint (HOW) |
 | Tasks | `needs-tasks` | Break design into phased coding units |
-| Implementation | `needs-implementation` | Write and verify code |
 | Tests | `needs-tests` | Derive and generate tests from specifications (VERIFY) |
+| Implementation | `needs-implementation` | Write and verify code |
 
 ### Project-Wide (operate at the project level)
 
@@ -332,7 +332,7 @@ flowchart TD
 | User Stories | `docs/features/<slug>/user-stories.adoc` | Living, versioned per feature |
 | Specifications | `docs/features/<slug>/spec.adoc` | Living, synced with stories |
 | Design | `docs/features/<slug>/design.adoc` | Living, synced with stories and specs |
-| Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- stale when design changes |
+| Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- disposable once tests verify implementation |
 | Tests | `tests/features/<slug>/` | Living, synced with specs |
 | ADRs | `docs/adrs/NNNN-title.adoc` | Permanent, append-only |
 | Architecture | `docs/architecture.adoc` | Living, reflects current system |

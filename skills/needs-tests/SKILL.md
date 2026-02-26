@@ -195,11 +195,12 @@ describe("<PREFIX>-<NNN>: <requirement summary>", () => {
 
 ### Verify
 
-After writing tests:
+Tests are generated **before implementation** and serve as the acceptance gate. After writing tests:
 
-1. Run the test suite to confirm all new tests pass (or identify failures that indicate implementation gaps)
-2. Check coverage against constraints if applicable
-3. Verify that every spec ID has at least one corresponding test
+1. **Compile/parse verification:** Run the build or type-check step to confirm all test files are syntactically valid and compile without errors. Tests must not have import errors, type errors, or syntax issues.
+2. **Do NOT expect tests to pass at runtime.** There is no implementation yet -- failing tests are the expected state and represent the work `needs-implementation` must complete.
+3. Verify that every spec ID has at least one corresponding test.
+4. Check that test organization follows project conventions.
 
 ### Report results
 
@@ -209,14 +210,11 @@ Tests generated:
   Files: N new, N modified
   Test cases: N total (N unit, N integration, N e2e)
   Spec coverage: N/N requirement IDs covered
-  Test results: N passed, N failed
-  Coverage: X% (constraint threshold: Y%)
+  Compile check: pass/fail
+  Constraint requirements: [coverage threshold, test type requirements]
 ```
 
-If any tests fail, report the failures. Failing tests may indicate:
-- Implementation gaps (code doesn't satisfy the spec yet)
-- Test setup issues (fixtures, configuration)
-- Spec/implementation divergences (the implementation satisfies the intent but doesn't match the spec's exact wording)
+Tests are now ready to serve as the acceptance gate for `needs-implementation`. Implementation is complete when all spec-derived tests pass.
 
 ## Quality Checklist
 
@@ -227,7 +225,7 @@ Before finalizing, verify:
 - Edge cases and error scenarios are covered (especially for unwanted-behavior EARS types)
 - Tests use existing test infrastructure (no duplicate helpers or fixtures)
 - Test file organization matches project conventions
-- All tests pass (or failures are reported with analysis)
+- All test files compile/parse without errors (runtime failures are expected before implementation)
 - Coverage constraints from `constraints.adoc` are satisfied
 - Spec version is recorded in test file headers for staleness detection
 
