@@ -137,7 +137,11 @@ When this skill is invoked, immediately build the current state model:
 
 4. **`docs/architecture.adoc`** -- check existence, read `:version:` if present.
 
-5. **`docs/state-log.adoc`** -- check existence, read recent transitions for context. Pay particular attention to any transitions with `:result: Partial` -- these indicate work that was started but not completed. The partial transition's `:features:` and `:capabilities-invoked:` fields provide useful context for understanding why artifacts are in their current state (e.g., stories and spec exist but design is missing because a prior transition was stopped mid-way).
+5. **`docs/state-log.adoc`** -- check existence, read recent transitions for context. Pay particular attention to:
+   - **`:result: In Progress`** -- the prior session started a transition but ended unexpectedly (crash, context exhaustion, tool failure) without cleanly recording a result. The entry contains the intent and plan but `:capabilities-invoked:` may be empty or incomplete. Propose resuming the transition or marking it as `:result: Failed` before starting new work.
+   - **`:result: Partial`** -- the user explicitly stopped a transition mid-way. The entry lists capabilities completed vs. remaining. Propose completing the remaining capabilities before starting new work.
+   
+   In both cases, the transition's `:features:` and `:capabilities-invoked:` fields provide useful context for understanding why artifacts are in their current state (e.g., stories and spec exist but design is missing because a prior transition was interrupted).
 
 #### 1.2 Analyze codebase
 
@@ -467,6 +471,8 @@ Store the user's choice for the duration of this transition. Default to **Intera
 
 ### 5. Execute Transition
 
+**Before invoking the first capability**, append an `In Progress` entry to `docs/state-log.adoc` with the fields known so far: `:date:`, `:intent:`, `:type:`, `:risk:`, `:features:`, `:desired-state:`, `:prior-state:`, and `:result: In Progress`. Leave `:capabilities-invoked:`, `:constraints-checked:`, and `:artifacts-modified:` empty -- these are filled in when the transition completes or is stopped. This ensures that if the session ends unexpectedly, a recoverable trace exists.
+
 Invoke capabilities in the derived order by loading each capability skill. For each capability:
 
 1. The orchestrator passes the feature context (slug, desired state, current state for that feature)
@@ -489,8 +495,8 @@ Maintain an explicit checklist of all capabilities to invoke for this transition
 In both modes, the following rules apply:
 - **Do NOT skip capabilities in the plan.** Every capability in the derived transition plan must be invoked unless the user explicitly asks to stop.
 - **Do NOT treat `needs-implementation` as the final step.** Post-implementation capabilities (`needs-tests`, `needs-architecture`, design divergence resolution) are part of the plan and must execute.
-- If the user asks to stop mid-transition, record a partial transition in `docs/state-log.adoc` with `:result: Partial` and list the capabilities completed vs. remaining.
-- When a new session starts, the Observe phase (step 1) reads the state-log for `:result: Partial` entries. If a partial transition exists, propose completing it before starting new work.
+- If the user asks to stop mid-transition, update the existing `In Progress` entry in `docs/state-log.adoc`: set `:result: Partial`, fill in `:capabilities-invoked:` with capabilities completed so far, and add `:capabilities-remaining:` listing what was not yet invoked.
+- When a new session starts, the Observe phase (step 1) reads the state-log for `:result: Partial` or `:result: In Progress` entries. Either indicates incomplete work -- propose completing it before starting new work.
 
 **Design divergence resolution (after `needs-implementation` completes):**
 
@@ -534,7 +540,7 @@ After `needs-implementation` completes, verify that it produced a divergence rep
 **Error handling:**
 - If a capability fails validation → stop, report to user, ask how to proceed
 - If a constraint is violated during execution → stop, report, offer to revise or abort
-- If the user wants to stop mid-transition → save progress, record partial transition in state log
+- If the user wants to stop mid-transition → save progress, update the `In Progress` entry to `:result: Partial` in state log
 
 ### 6. Validate
 
@@ -546,17 +552,17 @@ After all capabilities in the transition have executed:
 4. Run verification commands (build, test, lint) if code was changed
 
 **If desired state achieved:**
-- Record the transition in `docs/state-log.adoc`
+- Update the existing `In Progress` entry in `docs/state-log.adoc`: set `:result: Achieved`, fill in `:capabilities-invoked:`, `:constraints-checked:`, and `:artifacts-modified:`
 - Report success to user
 
 **If desired state NOT achieved:**
 - Identify what's missing
 - Propose additional steps or report what went wrong
-- Do not record as successful in state log
+- Do not update the entry to `:result: Achieved` -- leave as `In Progress` until resolved, or set to `:result: Failed` if unrecoverable
 
 ### 7. Record Transition
 
-Append to `docs/state-log.adoc`. See the State Log section for format.
+Update the existing `In Progress` entry in `docs/state-log.adoc` with the final result. The entry was created at the start of Step 5 -- now fill in `:capabilities-invoked:`, `:constraints-checked:`, `:artifacts-modified:`, and set `:result:` to `Achieved`, `Partial`, or `Failed`. See the State Log section for format.
 
 ## Risk Classification and Auto-Approve
 
@@ -718,9 +724,12 @@ A constraint violation blocks a transition unless the user explicitly chooses to
 
 - Transitions are numbered sequentially (TRANSITION-001, TRANSITION-002, ...)
 - Newest transitions appear first (reverse chronological)
-- The log is append-only (never edited after recording)
-- Partial transitions (user stopped mid-way) are recorded with `:result: Partial` and a note about what was completed
-- Failed transitions are recorded with `:result: Failed` and a reason
+- Entries are created at the start of execution with `:result: In Progress`, then updated exactly once with the final result when the transition completes or is stopped
+- `:result:` values:
+  - `In Progress` -- transition is actively executing, or the prior session ended unexpectedly before recording a final result. On session start, the Observe phase detects these and proposes resuming or marking as Failed.
+  - `Achieved` -- desired state was reached and validated
+  - `Partial` -- user explicitly stopped the transition mid-way. `:capabilities-invoked:` lists what completed; `:capabilities-remaining:` lists what was not yet invoked.
+  - `Failed` -- transition failed with a reason
 
 ## Feature Package Conventions
 
