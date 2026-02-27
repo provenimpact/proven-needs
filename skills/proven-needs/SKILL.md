@@ -30,7 +30,7 @@ The observable, verifiable reality of the system right now. Computed fresh each 
 **Artifact state:**
 - Which feature packages exist in `docs/features/`
 - For each feature: which artifacts exist (stories, spec, design, tasks), their versions, statuses
-- Project-wide artifacts: `constraints.adoc`, `docs/adrs/`, `docs/architecture.adoc`, `docs/state-log.adoc`
+- Project-wide artifacts: `docs/constraints.adoc`, `docs/adrs/`, `docs/architecture.adoc`, `docs/state-log.adoc`
 - Staleness: are any artifacts out of sync with their upstream?
 
 **Codebase state:**
@@ -54,7 +54,7 @@ Examples:
 
 ### Constraints (Invariants)
 
-Rules that must not be violated across any transition. Defined in `constraints.adoc` at the project root. See the Constraints section below for the full specification.
+Rules that must not be violated across any transition. Defined in `docs/constraints.adoc`. See the Constraints section below for the full specification.
 
 ### Feature Package
 
@@ -129,7 +129,7 @@ When this skill is invoked, immediately build the current state model:
 
 #### 1.1 Read project-wide artifacts
 
-1. **`constraints.adoc`** -- read all constraint categories and rules. If missing, note that no constraints are defined. Do not create it automatically -- the user declares constraints intentionally.
+1. **`docs/constraints.adoc`** -- read all constraint categories and rules. If missing, note that no constraints are defined. Do not create it automatically -- the user declares constraints intentionally.
 
 2. **`docs/features/`** -- list all feature directories. For each, check which artifacts exist and read their `:version:` and `:status:` attributes. Features with `:status: Archived` in `user-stories.adoc` are reported in the summary but skipped during intent classification and staleness checks.
 
@@ -220,14 +220,14 @@ flowchart TD
     Q3 -->|Yes| Q4{"Future-proof?<br/>(applies to features<br/>that don't exist yet)"}
     Q3 -->|No| ASK["Ask user:<br/>constraint or<br/>feature requirement?"]
 
-    Q4 -->|Yes| CONSTRAINT["Constraint<br/>→ add to constraints.adoc"]
+    Q4 -->|Yes| CONSTRAINT["Constraint<br/>→ add to docs/constraints.adoc"]
     Q4 -->|No| ASK
 ```
 
 If the intent is a constraint:
-- Propose adding it to `constraints.adoc` with the appropriate category
+- Propose adding it to `docs/constraints.adoc` with the appropriate category
 - Ask the user to confirm
-- If confirmed, update `constraints.adoc` and record the transition in the state log
+- If confirmed, update `docs/constraints.adoc` and record the transition in the state log
 - Do not create a feature package
 
 If uncertain, ask the user:
@@ -368,7 +368,7 @@ While deriving stories and specs, if a requirement is identified as cross-cuttin
    This applies to registration, password reset, and any future password feature.
 
    Options:
-     1. Add to constraints.adoc (recommended -- enforced everywhere)
+     1. Add to docs/constraints.adoc (recommended -- enforced everywhere)
      2. Keep as feature spec (only enforced in this feature)
    ```
 
@@ -389,7 +389,7 @@ If preconditions are unmet, the orchestrator can satisfy them as part of the tra
 
 #### 3.2 Constraint check
 
-Test the proposed transition against all constraints in `constraints.adoc`:
+Test the proposed transition against all constraints in `docs/constraints.adoc`:
 - Would any constraint be violated by the proposed changes?
 - Are there existing constraint violations that should be resolved first?
 
@@ -619,7 +619,7 @@ Auto-approved: Updated lodash 4.17.20 → 4.17.21 (CVE-XXXX patched). Tests pass
 
 ### File location and format
 
-`constraints.adoc` in the project root:
+`docs/constraints.adoc`:
 
 ```asciidoc
 = Project Constraints
@@ -873,7 +873,7 @@ flowchart TD
 This project uses the proven-needs state transition workflow.
 To make changes, declare a desired state and the system will derive
 the minimal valid transition: Observe → Evaluate → Derive → Execute → Validate.
-Feature work is organized in `docs/features/`. Project constraints are in `constraints.adoc`.
+Feature work is organized in `docs/features/`. Project constraints are in `docs/constraints.adoc`.
 Load the `proven-needs` skill to start.
 <!-- proven-needs:end -->
 ```

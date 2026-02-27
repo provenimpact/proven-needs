@@ -13,7 +13,7 @@ This file demonstrates two complete state transitions: a feature evolution inten
 ....
 Current state:
   Features: 0 (no feature packages exist)
-  Constraints: constraints.adoc exists with 6 rules
+  Constraints: docs/constraints.adoc exists with 6 rules
   ADRs: 0
   Architecture: none
   Codebase: empty project, package.json with Next.js scaffold
@@ -257,13 +257,13 @@ Detected as constraint because:
 
 === Execute
 
-1. Add to `constraints.adoc` under Security section:
+1. Add to `docs/constraints.adoc` under Security section:
 +
 ....
 * All API endpoints must enforce rate limiting at 100 requests per minute per client.
 ....
 
-2. Bump `constraints.adoc` version (MINOR)
+2. Bump `docs/constraints.adoc` version (MINOR)
 3. Check existing codebase: current API endpoints do NOT have rate limiting
 4. Report constraint violation to user:
 +
@@ -290,5 +290,5 @@ Would you like to remediate now? This would require updating all route handlers.
 :capabilities-invoked: (constraint update) + needs-implementation (if remediated)
 :constraints-checked: n/a (this IS a constraint addition)
 :result: Achieved (constraint added, remediation applied)
-:artifacts-modified: constraints.adoc, rate-limiting middleware, route handlers
+:artifacts-modified: docs/constraints.adoc, rate-limiting middleware, route handlers
 ....

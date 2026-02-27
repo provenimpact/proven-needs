@@ -30,7 +30,7 @@ Read `docs/features/<slug>/design.adoc`. Extract system design sections, story r
 
 ### 4. Read project-wide artifacts
 
-- **`constraints.adoc`** -- identify quality, architecture, and performance constraints that apply during implementation.
+- **`docs/constraints.adoc`** -- identify quality, architecture, and performance constraints that apply during implementation.
 - **`docs/adrs/`** -- technology decisions that affect implementation choices.
 
 ### 5. Analyze codebase
@@ -134,7 +134,7 @@ Work through tasks following the task list exactly. Do not skip, reorder, or add
 - Follow the task description for scope -- implement exactly what it describes, nothing more
 - Match existing codebase conventions (naming, file structure, patterns, formatting)
 - Write production-quality code -- no placeholders, no TODOs, no stubs (unless the task explicitly calls for one)
-- Respect all constraints from `constraints.adoc` (architecture rules, quality standards)
+- Respect all constraints from `docs/constraints.adoc` (architecture rules, quality standards)
 
 #### 3. Verify phase
 
