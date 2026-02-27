@@ -11,7 +11,7 @@ Given:
 * `docs/adrs/0001-use-typescript.adoc` (Accepted)
 * `docs/adrs/0002-use-postgresql.adoc` (Accepted)
 * `docs/adrs/0003-use-nextjs.adoc` (Accepted)
-* `constraints.adoc` with architecture constraint: "Business logic resides in the service layer"
+* `docs/constraints.adoc` with architecture constraint: "Business logic resides in the service layer"
 
 == Design File (docs/features/shopping-cart/design.adoc)
 

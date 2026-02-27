@@ -30,7 +30,7 @@ If `docs/features/<slug>/spec.adoc` exists:
 
 ### 3. Read constraints
 
-Read `constraints.adoc` from the project root. Identify constraints that overlap with this feature's domain -- these do not need to be duplicated as specs.
+Read `docs/constraints.adoc`. Identify constraints that overlap with this feature's domain -- these do not need to be duplicated as specs.
 
 ### 4. Report observation
 
@@ -107,7 +107,7 @@ Requirements MUST describe:
 - Timing and performance from the user's perspective
 - Error messages and feedback presented to the user
 
-**Constraint filtering:** If a derived requirement is already covered by a constraint in `constraints.adoc`, do not include it in the spec. Instead, note in the spec that the constraint applies:
+**Constraint filtering:** If a derived requirement is already covered by a constraint in `docs/constraints.adoc`, do not include it in the spec. Instead, note in the spec that the constraint applies:
 
 ```asciidoc
 NOTE: Password strength requirements are enforced by project constraint (Security: "Passwords must be at least 8 characters with mixed case and numbers"). Not duplicated here.
@@ -206,7 +206,7 @@ Compare `:source-stories-version:` in `spec.adoc` against `:version:` in `user-s
 4. For each existing requirement, check if its source criterion still exists:
    - **Orphaned** -- source criterion was removed → mark for removal
 5. Check for requirements that now overlap with constraints added since last sync:
-   - **Promoted to constraint** -- requirement is now covered by `constraints.adoc` → mark for removal
+   - **Promoted to constraint** -- requirement is now covered by `docs/constraints.adoc` → mark for removal
 
 #### 3. Present change report
 
