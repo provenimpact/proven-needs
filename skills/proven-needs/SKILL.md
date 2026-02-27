@@ -80,9 +80,9 @@ The orchestrator does not produce artifacts directly. It invokes capabilities (t
 
 ### Invoking a capability
 
-To invoke a capability, **load its skill by name** using the skill-loading tool (e.g., load `needs-stories`). Each capability is a separate skill with its own instructions for artifact format, versioning, quality checks, and the observe/evaluate/execute cycle.
+To invoke a capability, **load its skill** (e.g., `needs-stories`). Each capability is a separate skill with its own instructions for artifact format, versioning, quality checks, and the observe/evaluate/execute cycle.
 
-**Do NOT attempt to perform a capability's work without first loading its skill definition.** The orchestrator's job is to plan and coordinate -- the capability skills contain the detailed instructions for producing correct artifacts.
+**Do NOT attempt to perform a capability's work without first loading its skill.** The orchestrator's job is to plan and coordinate -- the capability skills contain the detailed instructions for producing correct artifacts.
 
 Invocation steps:
 1. Load the skill by name (e.g., `needs-stories`, `needs-spec`, `needs-design`)
