@@ -26,7 +26,7 @@ If `docs/features/<slug>/user-stories.adoc` exists:
 
 ### 3. Read constraints
 
-Read `constraints.adoc` from the project root. Identify any constraints relevant to story quality (e.g., quality constraints about testability, completeness).
+Read `docs/constraints.adoc`. Identify any constraints relevant to story quality (e.g., quality constraints about testability, completeness).
 
 ### 4. Report observation
 
@@ -51,7 +51,7 @@ Given the desired state from the orchestrator, determine what action is needed.
 
 Verify that proposed stories would not violate any constraints:
 - Stories must be testable (quality constraint)
-- Stories must not duplicate constraint-level requirements (cross-cutting requirements belong in `constraints.adoc`, not stories)
+- Stories must not duplicate constraint-level requirements (cross-cutting requirements belong in `docs/constraints.adoc`, not stories)
 - Each story must be scoped to this one feature (must not require knowledge of other features)
 
 ### 3. Report evaluation

@@ -30,7 +30,7 @@ If `docs/features/<slug>/tasks.adoc` exists:
 
 ### 4. Read constraints
 
-Read `constraints.adoc` from the project root. Identify quality constraints relevant to task planning.
+Read `docs/constraints.adoc`. Identify quality constraints relevant to task planning.
 
 ### 5. Analyze codebase
 
@@ -224,7 +224,7 @@ Before finalizing, verify:
 - Parallel/sequential markers are correct
 - The traceability section is complete and accurate
 - Source versions are recorded correctly
-- Quality constraints from `constraints.adoc` are addressed (e.g., testing tasks exist if coverage constraints apply)
+- Quality constraints from `docs/constraints.adoc` are addressed (e.g., testing tasks exist if coverage constraints apply)
 
 ## Reference
 

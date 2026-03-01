@@ -28,7 +28,7 @@ Read `docs/features/<slug>/spec.adoc`. Extract `:version:`, all requirement IDs 
 ### 3. Read project-wide artifacts
 
 - **`docs/adrs/`** -- read all ADRs with status `Accepted`. These are technology constraints.
-- **`constraints.adoc`** -- read all constraints, particularly architecture and quality constraints.
+- **`docs/constraints.adoc`** -- read all constraints, particularly architecture and quality constraints.
 - **`docs/architecture.adoc`** -- if it exists, understand the current system architecture for context.
 
 ### 4. Read existing design
@@ -366,7 +366,7 @@ Before finalizing, verify:
 - Every user story in this feature is addressed in Story Resolution
 - Every spec ID is mapped to at least one design element (skip if `:source-spec-version:` is `n/a`)
 - All ADR decisions are respected in the design
-- All architecture constraints from `constraints.adoc` are satisfied
+- All architecture constraints from `docs/constraints.adoc` are satisfied
 - No unresolved unknowns remain (or are explicitly listed)
 - Design is implementable (specific enough to code from)
 - Design does not depend on other feature designs

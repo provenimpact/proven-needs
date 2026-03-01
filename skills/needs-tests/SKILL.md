@@ -36,7 +36,7 @@ Scan the project's test directories for existing test files related to this feat
 
 ### 5. Read constraints
 
-Read `constraints.adoc` from the project root. Identify quality constraints relevant to testing (coverage thresholds, test requirements).
+Read `docs/constraints.adoc`. Identify quality constraints relevant to testing (coverage thresholds, test requirements).
 
 ### 6. Analyze test infrastructure
 
@@ -229,6 +229,8 @@ Before finalizing, verify:
 - Test file organization matches project conventions
 - All test files compile/parse without errors (runtime failures are expected before implementation)
 - Coverage constraints from `constraints.adoc` are satisfied
+- All tests pass (or failures are reported with analysis)
+- Coverage constraints from `docs/constraints.adoc` are satisfied
 - Spec version is recorded in test file headers for staleness detection
 
 ## Reference

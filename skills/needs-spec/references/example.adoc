@@ -166,7 +166,7 @@ No changes to: PROD-001, PROD-002, PROD-003, PROD-005, PROD-007, PROD-008
 
 === Scenario
 
-A project-wide constraint exists in `constraints.adoc`:
+A project-wide constraint exists in `docs/constraints.adoc`:
 
 ```
 == Security

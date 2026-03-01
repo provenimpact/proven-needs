@@ -92,7 +92,7 @@ flowchart LR
     INTENT -.->|update design| DESIGN
     INTENT -.->|fix code| IMPL
 
-    CONSTRAINTS[("constraints.adoc<br/><i>Checked at every step</i>")] -.->|enforced| feature
+    CONSTRAINTS[("docs/constraints.adoc<br/><i>Checked at every step</i>")] -.->|enforced| feature
     CONSTRAINTS -.->|enforced| project
 
     style INTENT fill:#4CAF50,color:#fff,stroke:none
@@ -146,7 +146,7 @@ flowchart LR
 
 #### Artifact Dependencies (reads)
 
-Solid lines are primary inputs; dashed lines are fallback or optional inputs. All capabilities also read `constraints.adoc` during their Evaluate phase (omitted for clarity).
+Solid lines are primary inputs; dashed lines are fallback or optional inputs. All capabilities also read `docs/constraints.adoc` during their Evaluate phase (omitted for clarity).
 
 ```mermaid
 flowchart RL
@@ -211,11 +211,17 @@ flowchart RL
 | `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `constraints.adoc` | `tasks.adoc` |
 | `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `constraints.adoc`, ADRs | source code |
 | `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc` | test files |
+| `needs-stories` | `docs/constraints.adoc` | `user-stories.adoc` |
+| `needs-spec` | `user-stories.adoc`, `docs/constraints.adoc` | `spec.adoc` |
+| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `docs/constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
+| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `docs/constraints.adoc` | `tasks.adoc` |
+| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `docs/constraints.adoc`, ADRs | source code |
+| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `docs/constraints.adoc`, source code | test files |
 | `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
-| `needs-architecture` | all feature designs, ADRs, `constraints.adoc`, codebase | `docs/architecture.adoc` |
-| `needs-dependencies` | package manifests, `constraints.adoc` | package manifests, lockfiles |
-| `needs-security` | codebase, dependencies, config, `constraints.adoc` | source code, config |
-| `needs-compliance` | dependencies, `constraints.adoc` | dependencies, `constraints.adoc` |
+| `needs-architecture` | all feature designs, ADRs, `docs/constraints.adoc`, codebase | `docs/architecture.adoc` |
+| `needs-dependencies` | package manifests, `docs/constraints.adoc` | package manifests, lockfiles |
+| `needs-security` | codebase, dependencies, config, `docs/constraints.adoc` | source code, config |
+| `needs-compliance` | dependencies, `docs/constraints.adoc` | dependencies, `docs/constraints.adoc` |
 
 ## Entry Point
 
@@ -243,7 +249,7 @@ A declarative statement of what must be true. Not a task list -- an intent.
 - "All API endpoints enforce rate limiting" (constraint)
 
 ### Constraints
-Project-wide invariants that must not be violated. Defined in `constraints.adoc`:
+Project-wide invariants that must not be violated. Defined in `docs/constraints.adoc`:
 
 - License compliance rules
 - Security policies
@@ -328,7 +334,7 @@ flowchart TD
 
 | Artifact | Location | Lifecycle |
 |---|---|---|
-| Constraints | `constraints.adoc` | Stable, changes rarely |
+| Constraints | `docs/constraints.adoc` | Stable, changes rarely |
 | User Stories | `docs/features/<slug>/user-stories.adoc` | Living, versioned per feature |
 | Specifications | `docs/features/<slug>/spec.adoc` | Living, synced with stories |
 | Design | `docs/features/<slug>/design.adoc` | Living, synced with stories and specs |
@@ -418,8 +424,8 @@ docs/adrs/
 └── 0003-use-stripe.adoc
 
 docs/architecture.adoc
+docs/constraints.adoc
 docs/state-log.adoc
-constraints.adoc
 ```
 
 ## What This Is Not

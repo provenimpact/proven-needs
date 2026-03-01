@@ -23,7 +23,7 @@ Look for `docs/adrs/` and `docs/adrs/index.adoc`.
 
 ### 2. Read constraints
 
-Read `constraints.adoc` from the project root. Identify constraints that may be relevant to the decision (architecture constraints, licensing constraints for technology choices).
+Read `docs/constraints.adoc`. Identify constraints that may be relevant to the decision (architecture constraints, licensing constraints for technology choices).
 
 ### 3. Report observation
 
