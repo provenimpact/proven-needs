@@ -210,6 +210,8 @@ Description:: <What to implement and key details>
 
 **Ticking off tasks:** When a task is completed, change `[ ]` to `[x]`. When all tasks are ticked, set `:status:` to `Implemented`.
 
+**Task file lifecycle:** Tasks guide implementation but are not the source of truth for feature completion -- spec-derived tests serve that role. Once a feature reaches `Implemented` (all spec-derived tests pass), the task file may be removed at the team's discretion.
+
 ## Quality Checklist
 
 Before finalizing, verify:

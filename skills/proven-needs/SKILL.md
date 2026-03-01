@@ -100,8 +100,8 @@ These operate within a single feature package:
 | Specifications | `needs-spec` | Derive testable requirements from stories |
 | Design | `needs-design` | Create implementation blueprint for a feature |
 | Tasks | `needs-tasks` | Break design into phased implementation units |
-| Implementation | `needs-implementation` | Write and verify code for a feature |
 | Tests | `needs-tests` | Derive and generate tests from specifications |
+| Implementation | `needs-implementation` | Write and verify code for a feature |
 
 ### Project-wide capabilities
 
@@ -383,7 +383,7 @@ Does the desired state require artifacts that don't exist yet? For each involved
 - `needs-design` requires stories and spec → are both available?
 - `needs-tasks` works best with design → is design available?
 - `needs-implementation` requires at minimum a design → does one exist?
-- `needs-tests` requires spec and implementation → are both available?
+- `needs-tests` requires spec → is the spec available? (Tests are derived before implementation and serve as the acceptance gate.)
 
 If preconditions are unmet, the orchestrator can satisfy them as part of the transition (by invoking earlier capabilities first). This is not a pipeline -- the orchestrator dynamically determines what's needed.
 
@@ -422,7 +422,7 @@ Build a dependency graph of capability invocations. The graph is derived, not ha
 **For each feature in scope:**
 
 1. Determine which artifacts need creating or updating
-2. Order capabilities by dependency: stories → specs → design → tasks → implementation → tests. `needs-spec` is always invoked -- every feature gets a specification. Specs are the contract between stories (WHY) and design (HOW); skipping them loses traceability and black-box testability.
+2. Order capabilities by dependency: stories → specs → design → tasks → tests → implementation. `needs-spec` is always invoked -- every feature gets a specification. Specs are the contract between stories (WHY) and design (HOW); skipping them loses traceability and black-box testability. `needs-tests` runs before `needs-implementation` -- tests are derived from specs and serve as the acceptance gate for implementation.
 3. Skip capabilities whose artifacts are already current and satisfy the desired state (e.g., stories already exist and cover the intent)
 4. Mark which steps can run in parallel across features (independent features can be processed concurrently)
 
@@ -445,13 +445,14 @@ Transition plan to achieve "Users can reset password via SMS":
   2. needs-spec: Update spec with SMS requirements
   3. needs-design: Update design for SMS flow
   4. needs-tasks: Create implementation tasks
-  5. needs-implementation: Implement code changes
+  5. needs-tests: Generate test cases from spec (acceptance gate)
+  6. needs-implementation: Implement code changes (tests must pass)
 
   Skipping: needs-adr (no new technology decisions)
-  Skipping: needs-architecture (update after implementation)
+  Post-implementation: needs-architecture (update after implementation)
 
   Risk: HIGH (new feature behavior, code changes)
-  Estimated artifacts affected: 4 files + code
+  Estimated artifacts affected: 4 files + tests + code
 
   Proceed?
 ```
@@ -494,7 +495,7 @@ Maintain an explicit checklist of all capabilities to invoke for this transition
 
 In both modes, the following rules apply:
 - **Do NOT skip capabilities in the plan.** Every capability in the derived transition plan must be invoked unless the user explicitly asks to stop.
-- **Do NOT treat `needs-implementation` as the final step.** Post-implementation capabilities (`needs-tests`, `needs-architecture`, design divergence resolution) are part of the plan and must execute.
+- **Do NOT treat `needs-implementation` as the final step.** Post-implementation capabilities (`needs-architecture`, design divergence resolution) are part of the plan and must execute. Note: `needs-tests` runs *before* implementation -- tests are the acceptance gate, not a post-implementation step.
 - If the user asks to stop mid-transition, update the existing `In Progress` entry in `docs/state-log.adoc`: set `:result: Partial`, fill in `:capabilities-invoked:` with capabilities completed so far, and add `:capabilities-remaining:` listing what was not yet invoked.
 - When a new session starts, the Observe phase (step 1) reads the state-log for `:result: Partial` or `:result: In Progress` entries. Either indicates incomplete work -- propose completing it before starting new work.
 
@@ -753,12 +754,14 @@ stateDiagram-v2
     Stories --> Specified : spec.adoc created
     Specified --> Designed : design.adoc created (Current)
     Designed --> Planned : tasks.adoc created (Current)
-    Planned --> Implemented : all tasks complete
+    Planned --> Tested : tests generated from spec
+    Tested --> Implemented : all spec-derived tests pass
 
     Stories --> Archived : archived
     Specified --> Archived : archived
     Designed --> Archived : archived
     Planned --> Archived : archived
+    Tested --> Archived : archived
     Implemented --> Archived : archived
     Archived --> Stories : un-archived
 ```
@@ -769,8 +772,11 @@ stateDiagram-v2
 | + spec.adoc | `Specified` |
 | + design.adoc (status: Current) | `Designed` |
 | + tasks.adoc (status: Current) | `Planned` |
-| All artifacts, tasks all ticked, tasks status Implemented | `Implemented` |
+| + test files generated from spec | `Tested` |
+| All spec-derived tests pass, implementation complete | `Implemented` |
 | `:status: Archived` in user-stories.adoc | `Archived` |
+
+**Task cleanup:** Once a feature reaches `Implemented` (all spec-derived tests pass), `tasks.adoc` is no longer needed as the completion oracle -- tests serve that role. The task file may be removed or left in place at the team's discretion. If removed, the feature remains `Implemented` as long as tests continue to pass.
 
 ### Feature archival
 

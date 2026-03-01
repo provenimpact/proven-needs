@@ -114,7 +114,9 @@ flowchart TD
 
 ### Derive test cases from specifications
 
-For each requirement in `spec.adoc` that needs a test:
+**Every requirement in `spec.adoc` MUST have at least one test.** A requirement without a corresponding test is not verified and blocks the feature from reaching `Implemented`. There are no exceptions -- if a requirement exists in the spec, it gets a test.
+
+For each requirement in `spec.adoc`:
 
 #### 1. Analyze the requirement
 
@@ -195,11 +197,12 @@ describe("<PREFIX>-<NNN>: <requirement summary>", () => {
 
 ### Verify
 
-After writing tests:
+Tests are generated **before implementation** and serve as the acceptance gate. After writing tests:
 
-1. Run the test suite to confirm all new tests pass (or identify failures that indicate implementation gaps)
-2. Check coverage against constraints if applicable
-3. Verify that every spec ID has at least one corresponding test
+1. **Compile/parse verification:** Run the build or type-check step to confirm all test files are syntactically valid and compile without errors. Tests must not have import errors, type errors, or syntax issues.
+2. **Do NOT expect tests to pass at runtime.** There is no implementation yet -- failing tests are the expected state and represent the work `needs-implementation` must complete.
+3. **Verify 100% spec coverage:** every spec ID MUST have at least one corresponding test. If any spec ID is missing a test, this step fails -- go back and generate the missing tests.
+4. Check that test organization follows project conventions.
 
 ### Report results
 
@@ -208,25 +211,24 @@ Return to the orchestrator:
 Tests generated:
   Files: N new, N modified
   Test cases: N total (N unit, N integration, N e2e)
-  Spec coverage: N/N requirement IDs covered
-  Test results: N passed, N failed
-  Coverage: X% (constraint threshold: Y%)
+  Spec coverage: N/N requirement IDs covered (MUST be 100%)
+  Compile check: pass/fail
+  Constraint requirements: [coverage threshold, test type requirements]
 ```
 
-If any tests fail, report the failures. Failing tests may indicate:
-- Implementation gaps (code doesn't satisfy the spec yet)
-- Test setup issues (fixtures, configuration)
-- Spec/implementation divergences (the implementation satisfies the intent but doesn't match the spec's exact wording)
+Tests are now ready to serve as the acceptance gate for `needs-implementation`. Implementation is complete when all spec-derived tests pass.
 
 ## Quality Checklist
 
 Before finalizing, verify:
-- Every spec ID has at least one test case
+- **Every spec ID has at least one test case -- no exceptions.** A spec requirement without a test is a blocking gap.
 - Test descriptions reference their spec ID for traceability
 - Tests follow the project's existing conventions (naming, structure, assertion style)
 - Edge cases and error scenarios are covered (especially for unwanted-behavior EARS types)
 - Tests use existing test infrastructure (no duplicate helpers or fixtures)
 - Test file organization matches project conventions
+- All test files compile/parse without errors (runtime failures are expected before implementation)
+- Coverage constraints from `constraints.adoc` are satisfied
 - All tests pass (or failures are reported with analysis)
 - Coverage constraints from `docs/constraints.adoc` are satisfied
 - Spec version is recorded in test file headers for staleness detection
