@@ -853,17 +853,13 @@ When this skill is loaded, **immediately** check the project's `AGENTS.md` for t
 flowchart TD
     START["Read AGENTS.md"] --> EXISTS{"File<br/>exists?"}
 
-    EXISTS -->|No| APPEND["Append proven-needs<br/>block to new file"]
+    EXISTS -->|No| INSERT["Insert proven-needs<br/>block at top of new file"]
     EXISTS -->|Yes| MARKER{"proven-needs<br/>marker found?"}
 
     MARKER -->|Yes| DONE["Do nothing<br/>(already bootstrapped)"]
-    MARKER -->|No| LEGACY{"Legacy<br/>proven-needs<br/>marker found?"}
+    MARKER -->|No| INSERT
 
-    LEGACY -->|Yes| REPLACE["Replace proven-needs<br/>block with<br/>proven-needs block"]
-    LEGACY -->|No| APPEND
-
-    REPLACE --> INFORM["Inform user<br/>AGENTS.md updated"]
-    APPEND --> INFORM
+    INSERT --> INFORM["Inform user<br/>AGENTS.md updated"]
 ```
 
 ### Steps
@@ -871,16 +867,14 @@ flowchart TD
 1. Read `AGENTS.md` in the project root (it may not exist yet).
 2. Search for the marker `<!-- proven-needs:start -->`.
 3. **If the marker is found** -- do nothing, the project is already bootstrapped.
-4. **If the marker is NOT found** -- check for the legacy marker `<!-- proven-needs:start -->`. If found, replace the entire block (from `<!-- proven-needs:start -->` to `<!-- proven-needs:end -->`) with the new block below. If neither marker exists, append the new block.
+4. **If the marker is NOT found** -- insert the new block at the very top of the file (or create the file with the block if it does not exist).
 
 ```markdown
 <!-- proven-needs:start -->
-## Development Workflow
-This project uses the proven-needs state transition workflow.
-To make changes, declare a desired state and the system will derive
-the minimal valid transition: Observe → Evaluate → Derive → Execute → Validate.
-Feature work is organized in `docs/features/`. Project constraints are in `docs/constraints.adoc`.
-Load the `proven-needs` skill to start.
+## Development Workflow (Required)
+All changes to this project **must** follow the proven-needs state transition workflow.
+Before making any changes, **load the `proven-needs` skill**. Do not modify code, documentation,
+or project artifacts without first going through the workflow it defines.
 <!-- proven-needs:end -->
 ```
 
@@ -889,6 +883,6 @@ Load the `proven-needs` skill to start.
 ### Rules
 
 - This check runs **every time** the skill is loaded, but is idempotent.
-- Append to the **end** of the file to avoid disrupting existing content.
+- Insert at the **top** of the file so the workflow requirement is the first thing agents see.
 - Do NOT modify content between the markers if the block already exists.
 - Perform this check **before** proceeding with any other workflow task.
