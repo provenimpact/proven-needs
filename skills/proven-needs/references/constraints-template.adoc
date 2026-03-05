@@ -1,0 +1,33 @@
+= Project Constraints
+:version: 1.0.0
+:last-updated: YYYY-MM-DD
+
+== Security
+
+* Passwords must be at least 8 characters with mixed case and numbers.
+* All user sessions must expire after 24 hours of inactivity.
+* No dependency with a known CRITICAL or HIGH CVE may remain unpatched for more than 7 days.
+* All user input must be validated before processing.
+
+== Licensing
+
+* Only MIT, Apache-2.0, and BSD-licensed dependencies are permitted.
+
+== API Compatibility
+
+* Public endpoints maintain backward compatibility within a MAJOR version.
+* Removal of any public endpoint requires a MAJOR version bump.
+
+== Architecture
+
+* Business logic resides in the service layer, not in route handlers.
+* No direct database access from UI components.
+
+== Quality
+
+* Test coverage must not decrease per feature implementation.
+* All code passes linting and type checking.
+
+== Performance
+
+* API P95 response time must remain below 200ms.

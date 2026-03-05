@@ -38,18 +38,19 @@ flowchart TD
     style LOG fill:#2196F3,color:#fff,stroke:none
 ```
 
-1. **Observe** current state (artifacts, codebase, dependencies, security posture)
-2. **Declare** desired state ("Users can reset password via SMS", "No vulnerable dependencies")
-3. **Evaluate** feasibility against constraints
-4. **Derive** the minimal transition plan (which capabilities to invoke)
-5. **Execute** the transition
-6. **Validate** the desired state is now true
-
 The system figures out what needs to happen. You declare what must be true.
 
-### Capability Invocation
+## Entry Point
 
-During the **Execute** phase, the orchestrator invokes capabilities in dependency order. The pipeline is not rigid -- the orchestrator derives what is needed dynamically and can skip steps whose artifacts are already current.
+Load the `proven-needs` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
+
+```
+I want users to be able to browse products, add them to cart, and checkout
+```
+
+The orchestrator will: decompose into features, confirm grouping, then for each feature create stories, derive specs, design, plan tasks, generate tests, implement -- resolving divergences and recording ADRs along the way.
+
+## Capabilities
 
 ```mermaid
 flowchart LR
@@ -99,255 +100,26 @@ flowchart LR
     style CONSTRAINTS fill:#FF9800,color:#fff,stroke:none
 ```
 
-**Key relationships:**
-- **Solid arrows** = primary dependency (required upstream artifact)
-- **Dotted arrows** = optional or fallback paths
-- `needs-spec` is always generated -- every feature gets a specification
-- `needs-design` requires both stories and spec
-- `needs-tasks` prefers design but can derive tasks directly from stories
-- `needs-implementation` prefers tasks but can work story-by-story from design alone
-- `needs-tests` derives test cases from specs *before* implementation -- tests are the acceptance gate for `needs-implementation`
-- `needs-design` can trigger `needs-adr` creation for technology decisions (lateral invocation)
-- `needs-security` delegates dependency vulnerability fixes to `needs-dependencies`
-- After implementation, divergences between design and code are reported to the orchestrator. The user decides per-divergence whether to update the design or fix the code.
+**Solid arrows** = required dependency. **Dotted** = optional/fallback.
 
-Independent features can be processed concurrently.
+| Scope | Capability | Skill | Domain |
+|---|---|---|---|
+| Feature | Stories | `needs-stories` | WHY: user needs |
+| Feature | Specs | `needs-spec` | WHAT: black-box requirements |
+| Feature | Design | `needs-design` | HOW: implementation blueprint |
+| Feature | Tasks | `needs-tasks` | WORK: phased coding units |
+| Feature | Tests | `needs-tests` | VERIFY: spec-derived test cases |
+| Feature | Implementation | `needs-implementation` | CODE: working software |
+| Project | ADRs | `needs-adr` | Technology decisions |
+| Project | Architecture | `needs-architecture` | System structure (C4 model) |
+| Project | Dependencies | `needs-dependencies` | Dependency management |
+| Project | Security | `needs-security` | Security posture |
+| Project | Compliance | `needs-compliance` | License/policy compliance |
+| Support | EARS | `ears-requirements` | Requirement syntax reference |
 
-### Artifact Traceability
+Every capability follows **observe/evaluate/execute**: assess current state, check if action is needed and constraints allow it, make minimum changes.
 
-Each capability reads upstream artifacts and writes its own. The two diagrams below separate ownership (writes) from dependencies (reads) for clarity.
-
-#### Artifact Ownership (writes)
-
-Each capability owns and produces specific artifacts. `state-log.adoc` is managed by the orchestrator.
-
-```mermaid
-flowchart LR
-    subgraph feature ["Feature Pipeline"]
-        NS["needs-stories"] --> STORIES[("user-stories.adoc")]
-        NSP["needs-spec"] --> SPEC[("spec.adoc")]
-        NADR["needs-adr"] --> ADRS[("docs/adrs/")]
-        ND["needs-design"] --> DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
-        NT["needs-tasks"] --> TASKS[("tasks.adoc")]
-        NI["needs-implementation"] --> CODE[("source code")]
-        NTS["needs-tests"] --> TESTFILES[("test files")]
-    end
-
-    subgraph project ["Project-wide"]
-        NARCH["needs-architecture"] --> ARCH[("architecture.adoc")]
-        NDEPS["needs-dependencies"] --> DEPS[("package manifests<br/>lockfiles")]
-        NSEC["needs-security"] --> CODE2[("source code")]
-        NCOMP["needs-compliance"] --> DEPS2[("package manifests")]
-    end
-
-    style feature fill:transparent,stroke:#555,stroke-width:1px
-    style project fill:transparent,stroke:#555,stroke-width:1px
-```
-
-#### Artifact Dependencies (reads)
-
-Solid lines are primary inputs; dashed lines are fallback or optional inputs. All capabilities also read `docs/constraints.adoc` during their Evaluate phase (omitted for clarity).
-
-```mermaid
-flowchart RL
-    subgraph artifacts ["Artifacts"]
-        STORIES[("user-stories.adoc")]
-        SPEC[("spec.adoc")]
-        ADRS[("docs/adrs/")]
-        DESIGN[("design.adoc<br/>data-model.adoc<br/>contracts/")]
-        TASKS[("tasks.adoc")]
-        CODE[("source code")]
-        DEPS[("package manifests<br/>lockfiles")]
-    end
-
-    subgraph feature ["Feature Pipeline"]
-        NSP["needs-spec"]
-        ND["needs-design"]
-        NT["needs-tasks"]
-        NI["needs-implementation"]
-        NTS["needs-tests"]
-    end
-
-    subgraph project ["Project-wide"]
-        NARCH["needs-architecture"]
-        NDEPS["needs-dependencies"]
-        NSEC["needs-security"]
-        NCOMP["needs-compliance"]
-    end
-
-    %% ── Feature reads (solid = primary) ───────────────────────
-    STORIES -->|reads| NSP
-    STORIES -->|reads| ND
-    SPEC -->|reads| ND
-    SPEC -->|reads| NTS
-    DESIGN -->|reads| NT
-    TASKS -->|reads| NI
-
-    %% ── Feature reads (dashed = fallback / optional) ──────────
-    STORIES -.->|fallback| NT
-    DESIGN -.->|fallback| NI
-    DESIGN -.->|reads| NTS
-    ADRS -.->|reads| ND
-
-    %% ── Project-wide reads ────────────────────────────────────
-    DESIGN -.->|reads| NARCH
-    ADRS -.->|reads| NARCH
-    CODE -.->|reads| NARCH
-    DEPS -->|reads| NDEPS
-    CODE -->|reads| NSEC
-    DEPS -.->|reads| NSEC
-    DEPS -->|reads| NCOMP
-
-    style artifacts fill:transparent,stroke:#555,stroke-width:1px
-    style feature fill:transparent,stroke:#555,stroke-width:1px
-    style project fill:transparent,stroke:#555,stroke-width:1px
-```
-
-| Capability | Reads | Writes |
-|---|---|---|
-| `needs-stories` | `constraints.adoc` | `user-stories.adoc` |
-| `needs-spec` | `user-stories.adoc`, `constraints.adoc` | `spec.adoc` |
-| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
-| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `constraints.adoc` | `tasks.adoc` |
-| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `constraints.adoc`, ADRs | source code |
-| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `constraints.adoc` | test files |
-| `needs-stories` | `docs/constraints.adoc` | `user-stories.adoc` |
-| `needs-spec` | `user-stories.adoc`, `docs/constraints.adoc` | `spec.adoc` |
-| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `docs/constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
-| `needs-tasks` | `design.adoc` (or `user-stories.adoc` as fallback), `spec.adoc`, `docs/constraints.adoc` | `tasks.adoc` |
-| `needs-implementation` | `tasks.adoc` (or `design.adoc` as fallback), `user-stories.adoc`, `spec.adoc`, `docs/constraints.adoc`, ADRs | source code |
-| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `docs/constraints.adoc`, source code | test files |
-| `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
-| `needs-architecture` | all feature designs, ADRs, `docs/constraints.adoc`, codebase | `docs/architecture.adoc` |
-| `needs-dependencies` | package manifests, `docs/constraints.adoc` | package manifests, lockfiles |
-| `needs-security` | codebase, dependencies, config, `docs/constraints.adoc` | source code, config |
-| `needs-compliance` | dependencies, `docs/constraints.adoc` | dependencies, `docs/constraints.adoc` |
-
-## Entry Point
-
-Load the `proven-needs` skill. It is the single orchestrator that accepts intents, classifies them, and invokes the appropriate capabilities.
-
-```
-I want users to be able to browse products, add them to cart, and checkout
-```
-
-The orchestrator will:
-1. Decompose this into feature packages (product-browsing, shopping-cart, checkout)
-2. Ask you to confirm the grouping
-3. For each feature: create stories, derive specs, design, plan tasks, generate tests, implement
-4. Resolve any design divergences (user decides: update design or fix code)
-5. Record technology decisions as ADRs along the way
-6. Update the architecture document when all features are implemented
-
-## Core Concepts
-
-### Desired State
-A declarative statement of what must be true. Not a task list -- an intent.
-
-- "Users can reset their password via SMS" (feature)
-- "No dependencies have known vulnerabilities" (maintenance)
-- "All API endpoints enforce rate limiting" (constraint)
-
-### Constraints
-Project-wide invariants that must not be violated. Defined in `docs/constraints.adoc`:
-
-- License compliance rules
-- Security policies
-- Architecture boundaries
-- Quality standards
-- Performance SLAs
-
-Cross-cutting requirements belong here, not in feature specs.
-
-### Feature Packages
-Self-contained units of work at `docs/features/<slug>/`:
-
-```
-docs/features/shopping-cart/
-├── user-stories.adoc    # WHY: user needs
-├── spec.adoc            # WHAT: testable requirements
-├── design.adoc          # HOW: implementation blueprint
-└── tasks.adoc           # WORK: phased task breakdown
-```
-
-Each feature is fully independent -- it can be specified, designed, and implemented without reading other features.
-
-Features can be **archived** when superseded or no longer relevant. Archived features remain on disk as historical records but are skipped during intent classification.
-
-### State Log
-Append-only audit trail at `docs/state-log.adoc` recording every transition: what was intended, what changed, what was verified.
-
-## Capabilities
-
-### Feature-Scoped (operate within a feature package)
-
-| Capability | Skill | What it does |
-|---|---|---|
-| Stories | `needs-stories` | Create user stories explaining WHY |
-| Specifications | `needs-spec` | Derive black-box testable requirements (WHAT) |
-| Design | `needs-design` | Create implementation blueprint (HOW) |
-| Tasks | `needs-tasks` | Break design into phased coding units |
-| Tests | `needs-tests` | Derive and generate tests from specifications (VERIFY) |
-| Implementation | `needs-implementation` | Write and verify code |
-
-### Project-Wide (operate at the project level)
-
-| Capability | Skill | What it does |
-|---|---|---|
-| ADRs | `needs-adr` | Record technology decisions |
-| Architecture | `needs-architecture` | Document current system architecture |
-| Dependencies | `needs-dependencies` | Manage and update dependency graph |
-| Security | `needs-security` | Assess and remediate security posture |
-| Compliance | `needs-compliance` | Verify license and policy compliance |
-
-### Supporting
-
-| Skill | What it does |
-|---|---|
-| `ears-requirements` | EARS methodology reference for stories and specs |
-
-Every capability follows the **observe/evaluate/execute** pattern:
-
-```mermaid
-flowchart TD
-    O["Observe<br/><i>Read artifacts, codebase,<br/>constraints in this domain</i>"]
-    E["Evaluate<br/><i>Does desired state require action?<br/>Do constraints allow it?</i>"]
-    X["Execute<br/><i>Make the minimum changes.<br/>Create or update artifacts.</i>"]
-
-    O --> E
-    E -->|Action needed| X
-    E -->|"Already current"| DONE["Report: no action needed"]
-    E -->|"Constraint violation"| BLOCK["Report violation<br/>to orchestrator"]
-    X --> VERIFY["Verify output"]
-    VERIFY --> REPORT["Return result<br/>to orchestrator"]
-
-    style DONE fill:#4CAF50,color:#fff,stroke:none
-    style BLOCK fill:#f44336,color:#fff,stroke:none
-    style REPORT fill:#2196F3,color:#fff,stroke:none
-```
-
-1. **Observe** -- assess current state in this domain
-2. **Evaluate** -- does the desired state require action? do constraints allow it?
-3. **Execute** -- make the minimum changes
-
-## Artifact Lifecycle
-
-| Artifact | Location | Lifecycle |
-|---|---|---|
-| Constraints | `docs/constraints.adoc` | Stable, changes rarely |
-| User Stories | `docs/features/<slug>/user-stories.adoc` | Living, versioned per feature |
-| Specifications | `docs/features/<slug>/spec.adoc` | Living, synced with stories |
-| Design | `docs/features/<slug>/design.adoc` | Living, synced with stories and specs |
-| Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- disposable once tests verify implementation |
-| Tests | `tests/features/<slug>/` | Living, synced with specs |
-| ADRs | `docs/adrs/NNNN-title.adoc` | Permanent, append-only |
-| Architecture | `docs/architecture.adoc` | Living, reflects current system |
-| State Log | `docs/state-log.adoc` | Append-only audit trail |
-| Code | project source | Living -- the actual system |
-
-### Version Tracking and Staleness
-
-Each downstream artifact tracks its upstream version. When an upstream artifact changes, downstream artifacts become stale and need syncing.
+## Artifact Traceability
 
 ```mermaid
 flowchart LR
@@ -369,63 +141,132 @@ flowchart LR
     style T fill:#9C27B0,color:#fff,stroke:none
 ```
 
-When stories change, specs become stale. When specs change, the design becomes stale. When the design changes, tasks become stale. The orchestrator detects these cascades during the Evaluate phase and includes sync steps in the transition plan.
+Each downstream artifact tracks its upstream version. When an upstream changes, downstream artifacts become stale. The orchestrator detects cascades and includes sync steps in the transition plan.
 
-## Risk Classification
-
-Transitions are auto-approved or require confirmation based on risk:
-
-| Risk | Auto-approve? | Examples |
+| Capability | Reads | Writes |
 |---|---|---|
-| **Low** | Yes | Patch dependency updates, metadata fixes |
-| **Medium** | Propose, ask | Minor dependency updates, spec syncs |
-| **High** | Full plan, require approval | New features, architecture changes, code changes |
+| `needs-stories` | `docs/constraints.adoc` | `user-stories.adoc` |
+| `needs-spec` | `user-stories.adoc`, `docs/constraints.adoc` | `spec.adoc` |
+| `needs-design` | `user-stories.adoc`, `spec.adoc`, ADRs, `docs/constraints.adoc`, `architecture.adoc` | `design.adoc`, `data-model.adoc`, `contracts/` |
+| `needs-tasks` | `design.adoc` (or `user-stories.adoc` fallback), `spec.adoc`, `docs/constraints.adoc` | `tasks.adoc` |
+| `needs-implementation` | `tasks.adoc` (or `design.adoc` fallback), `user-stories.adoc`, `spec.adoc`, `docs/constraints.adoc`, ADRs | source code |
+| `needs-tests` | `spec.adoc`, `design.adoc`, `user-stories.adoc`, `docs/constraints.adoc`, source code | test files |
+| `needs-adr` | existing ADRs | `docs/adrs/*.adoc`, `index.adoc` |
+| `needs-architecture` | all feature designs, ADRs, `docs/constraints.adoc`, codebase | `docs/architecture.adoc` |
+| `needs-dependencies` | package manifests, `docs/constraints.adoc` | package manifests, lockfiles |
+| `needs-security` | codebase, dependencies, config, `docs/constraints.adoc` | source code, config |
+| `needs-compliance` | dependencies, `docs/constraints.adoc` | dependencies, `docs/constraints.adoc` |
 
-## EARS Requirements
+## Visual Reference
 
-Acceptance criteria and specifications use [EARS sentence types](skills/ears-requirements/references/ears-reference.adoc):
+### Intent Classification
 
-| Type | Pattern | Use for |
-|------|---------|---------|
-| Ubiquitous | The \<system\> shall \<response\>. | Always-on behavior |
-| Event-driven | When \<trigger\>, the \<system\> shall \<response\>. | User actions or events |
-| State-driven | While \<state\>, the \<system\> shall \<response\>. | Behavior during a state |
-| Unwanted behavior | If \<trigger\>, then the \<system\> shall \<response\>. | Errors and edge cases |
-| Optional | Where \<feature\>, the \<system\> shall \<response\>. | Feature-dependent behavior |
+```mermaid
+flowchart TD
+    INPUT["User intent"] --> SIGNALS{"Analyze signals"}
 
-## Example
-
-Given the intent: "I want an e-commerce site where users can browse products, add them to cart, and checkout"
-
-The orchestrator produces:
-
+    SIGNALS -->|"User journey"| FEAT["Feature evolution"]
+    SIGNALS -->|"Universal quantifiers"| CONST["Constraint declaration"]
+    SIGNALS -->|"Sync/update language"| ART["Artifact maintenance"]
+    SIGNALS -->|"Packages, vulns"| DEP["Dependency maintenance"]
+    SIGNALS -->|"System structure"| ARCH["Architecture evolution"]
+    SIGNALS -->|"Tests, coverage"| QUAL["Quality improvement"]
+    SIGNALS -->|"Docs, architecture"| DOC["Documentation"]
 ```
-docs/features/
-├── product-browsing/
-│   ├── user-stories.adoc   # 2 stories: View Catalog, Search
-│   ├── spec.adoc            # PROD-001 through PROD-008
-│   ├── design.adoc          # Frontend + API design
-│   └── tasks.adoc           # 3 phases, 8 tasks
-├── shopping-cart/
-│   ├── user-stories.adoc   # 2 stories: Add to Cart, View Cart
-│   ├── spec.adoc            # CART-001 through CART-008
-│   ├── design.adoc          # CartService + UI design
-│   └── tasks.adoc           # 3 phases, 9 tasks
-└── checkout/
-    ├── user-stories.adoc   # 1 story: Checkout Process
-    ├── spec.adoc            # CHK-001 through CHK-006
-    ├── design.adoc          # Payment flow design
-    └── tasks.adoc           # 3 phases, 7 tasks
 
-docs/adrs/
-├── index.adoc
-├── 0001-use-typescript.adoc
-├── 0002-use-postgresql.adoc
-└── 0003-use-stripe.adoc
+### Constraint Detection
 
-docs/architecture.adoc
-docs/constraints.adoc
-docs/state-log.adoc
+```mermaid
+flowchart TD
+    INTENT["Intent"] --> Q1{"Universal scope?"}
+    Q1 -->|Yes| Q2{"System-as-subject?"}
+    Q1 -->|No| FEATURE["Feature requirement"]
+    Q2 -->|Yes| Q3{"No user journey?"}
+    Q2 -->|No| FEATURE
+    Q3 -->|Yes| Q4{"Future-proof?"}
+    Q3 -->|No| ASK["Ask user"]
+    Q4 -->|Yes| CONSTRAINT["Constraint"]
+    Q4 -->|No| ASK
+```
+
+### Feature Decomposition (Two-Pass)
+
+```mermaid
+flowchart TD
+    START((Intent)) --> CHECK{Existing features?}
+    CHECK -->|No: Greenfield| GF_P1
+    CHECK -->|Yes: Evolution| EV_P1
+
+    subgraph greenfield ["Greenfield"]
+        GF_P1["Pass 1: Draft stories into _drafts/"]
+        GF_P1 --> GF_COHESION["Analyze cohesion"] --> GF_PROPOSE["Propose groupings"]
+        GF_PROPOSE --> GF_CONFIRM{Confirm?}
+        GF_CONFIRM -->|Yes| GF_P2["Pass 2: Distribute to packages"]
+        GF_CONFIRM -->|Adjust| GF_PROPOSE
+    end
+
+    subgraph evolution ["Evolution"]
+        EV_P1["Pass 1: Draft + classify against existing"]
+        EV_P1 --> EV_PROPOSE["Present mapping"]
+        EV_PROPOSE --> EV_CONFIRM{Confirm?}
+        EV_CONFIRM -->|Yes| EV_P2["Pass 2: Distribute"]
+        EV_CONFIRM -->|Adjust| EV_PROPOSE
+    end
+
+    GF_P2 --> DONE((Ready))
+    EV_P2 --> DONE
+```
+
+### Risk Classification
+
+```mermaid
+flowchart TD
+    CHANGE["Transition"] --> FACTORS["Assess: scope, constraints, reversibility, code impact"]
+    FACTORS --> LOW["Low risk → auto-approve"]
+    FACTORS --> MED["Medium → propose, ask"]
+    FACTORS --> HIGH["High → full plan, require approval"]
+```
+
+### Design Divergence Resolution
+
+```mermaid
+sequenceDiagram
+    participant Impl as needs-implementation
+    participant Orch as Orchestrator
+    participant User as User
+    participant Design as needs-design
+
+    Impl->>Orch: Report divergences
+    Orch->>User: Present with analysis
+
+    loop Each divergence
+        User->>Orch: Choose resolution
+        alt Update design
+            Orch->>Design: Reconciliation mode
+        else Fix code
+            Orch->>Impl: Fix divergence
+        end
+    end
+```
+
+### Feature Status
+
+```mermaid
+stateDiagram-v2
+    [*] --> Stories : user-stories.adoc
+    Stories --> Specified : spec.adoc
+    Specified --> Designed : design.adoc (Current)
+    Designed --> Planned : tasks.adoc (Current)
+    Planned --> Tested : tests from spec
+    Tested --> Implemented : all tests pass
+
+    Stories --> Archived
+    Specified --> Archived
+    Designed --> Archived
+    Planned --> Archived
+    Tested --> Archived
+    Implemented --> Archived
+    Archived --> Stories : un-archived
 ```
 
 ## What This Is Not

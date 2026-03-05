@@ -1,0 +1,43 @@
+= State Transition Log
+:last-updated: YYYY-MM-DD
+
+== TRANSITION-003
+:date: 2026-02-23
+:intent: Users can reset their password via SMS
+:type: Feature evolution
+:risk: High
+:features: user-authentication (extended)
+:desired-state: SMS password reset is available alongside email reset
+:prior-state: user-authentication has email reset only (stories v1.2.0, spec v1.1.0, design v1.0.0 implemented)
+:capabilities-invoked: needs-stories, needs-spec, needs-design, needs-tasks, needs-implementation
+:constraints-checked: Security (pass), Architecture (pass), Quality (pass)
+:result: Achieved
+:artifacts-modified: docs/features/user-authentication/user-stories.adoc (v1.3.0), docs/features/user-authentication/spec.adoc (v1.2.0), docs/features/user-authentication/design.adoc (v2.0.0), docs/features/user-authentication/tasks.adoc (v1.0.0)
+
+== TRANSITION-002
+:date: 2026-02-22
+:intent: No dependencies have known vulnerabilities
+:type: Dependency maintenance
+:risk: Low (auto-approved)
+:features: n/a (project-wide)
+:desired-state: Zero known vulnerabilities in dependency graph
+:prior-state: lodash@4.17.20 has HIGH CVE
+:capabilities-invoked: needs-dependencies
+:constraints-checked: Security (triggered), Licensing (pass)
+:result: Achieved
+:artifacts-modified: package.json, package-lock.json
+
+== TRANSITION-001
+...
+
+////
+Conventions:
+- Numbered sequentially (TRANSITION-001, TRANSITION-002, ...)
+- Newest first (reverse chronological)
+- Created at execution start with :result: In Progress, updated once with final result
+- :result: values:
+  - In Progress -- actively executing or prior session ended unexpectedly
+  - Achieved -- desired state reached and validated
+  - Partial -- user stopped mid-transition; :capabilities-remaining: lists what was not invoked
+  - Failed -- transition failed with a reason
+////
