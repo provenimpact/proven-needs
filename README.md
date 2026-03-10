@@ -242,6 +242,7 @@ Self-contained units of work at `docs/features/<slug>/`:
 ```
 docs/features/shopping-cart/
 ├── *.feature            # WHY + WHAT + VERIFY: Gherkin scenarios
+├── steps/               # Cucumber step definitions (glue code)
 ├── design.adoc          # HOW: implementation blueprint
 └── tasks.adoc           # WORK: phased task breakdown
 ```
@@ -251,7 +252,7 @@ Gherkin `.feature` files replace the traditional separation of user stories, spe
 - `Scenario:` blocks with Given/When/Then (the specification and executable test)
 - `@<PREFIX>-<NNN>` tags on each scenario (spec requirement IDs for traceability)
 
-Step definitions (glue code) live with the codebase at `tests/features/<slug>/steps/`.
+Step definitions (glue code) live within the feature package at `docs/features/<slug>/steps/`.
 
 Each feature is fully independent -- it can be specified, designed, and implemented without reading other features.
 
@@ -313,7 +314,7 @@ flowchart TD
 | Feature files | `docs/features/<slug>/*.feature` | Living, tracked via git |
 | Design | `docs/features/<slug>/design.adoc` | Living, synced with .feature files |
 | Tasks | `docs/features/<slug>/tasks.adoc` | Ephemeral -- disposable once scenarios verify implementation |
-| Step definitions | `tests/features/<slug>/steps/` | Living, synced with .feature files |
+| Step definitions | `docs/features/<slug>/steps/` | Living, synced with .feature files |
 | ADRs | `docs/adrs/NNNN-title.adoc` | Permanent, append-only |
 | Architecture | `docs/architecture.adoc` | Living, reflects current system |
 | State Log | `docs/state-log.adoc` | Append-only audit trail |
@@ -390,21 +391,19 @@ docs/features/
 ├── product-browsing/
 │   ├── product-catalog.feature  # @PROD-001 through @PROD-004
 │   ├── product-search.feature   # @PROD-005 through @PROD-008
+│   ├── steps/                   # Step definitions (glue code)
 │   ├── design.adoc              # Frontend + API design
 │   └── tasks.adoc               # 3 phases, 8 tasks
 ├── shopping-cart/
 │   ├── cart-management.feature  # @CART-001 through @CART-005
+│   ├── steps/                   # Step definitions (glue code)
 │   ├── design.adoc              # CartService + UI design
 │   └── tasks.adoc               # 3 phases, 9 tasks
 └── checkout/
     ├── checkout-process.feature # @CHK-001 through @CHK-005
+    ├── steps/                   # Step definitions (glue code)
     ├── design.adoc              # Payment flow design
     └── tasks.adoc               # 3 phases, 7 tasks
-
-tests/features/
-├── product-browsing/steps/      # Step definitions
-├── shopping-cart/steps/
-└── checkout/steps/
 
 docs/adrs/
 ├── index.adoc

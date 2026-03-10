@@ -63,6 +63,7 @@ A self-contained unit of work scoped to one feature. Lives in `docs/features/<sl
 ```
 docs/features/<slug>/
 ├── *.feature            # WHY + WHAT + VERIFY: Gherkin scenarios (user stories, specs, and executable tests in one)
+├── steps/               # Cucumber step definitions (glue code)
 ├── design.adoc          # HOW: implementation blueprint
 └── tasks.adoc           # WORK: phased implementation breakdown
 ```
@@ -72,7 +73,7 @@ Gherkin `.feature` files replace the separate `user-stories.adoc`, `spec.adoc`, 
 - `Scenario:` blocks with Given/When/Then (the specification and test)
 - `@<PREFIX>-<NNN>` tags on each scenario (the spec requirement IDs)
 
-Step definitions (glue code) live with the codebase at `tests/features/<slug>/steps/`.
+Step definitions (glue code) live within the feature package at `docs/features/<slug>/steps/`.
 
 Each feature package is fully independent -- it can be specified, designed, and implemented without reading other feature packages. Feature designs reference project-wide ADRs and architecture but never other feature designs.
 
@@ -697,7 +698,7 @@ A constraint violation blocks a transition unless the user explicitly chooses to
 :capabilities-invoked: needs-features, needs-design, needs-tasks, needs-implementation
 :constraints-checked: Security (pass), Architecture (pass), Quality (pass)
 :result: Achieved
-:artifacts-modified: docs/features/user-authentication/password-reset.feature, docs/features/user-authentication/design.adoc (v2.0.0), docs/features/user-authentication/tasks.adoc (v1.0.0), tests/features/user-authentication/steps/password-reset.steps.ts
+:artifacts-modified: docs/features/user-authentication/password-reset.feature, docs/features/user-authentication/design.adoc (v2.0.0), docs/features/user-authentication/tasks.adoc (v1.0.0), docs/features/user-authentication/steps/password-reset.steps.js
 
 == TRANSITION-002
 :date: 2026-02-22

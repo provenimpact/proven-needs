@@ -93,7 +93,7 @@ User confirms.
 
 ==== Feature 1: product-browsing
 
-1. **needs-features** creates `docs/features/product-browsing/product-catalog.feature` and `product-search.feature` (prefix: PROD, 8 scenarios with @PROD-001 through @PROD-008 tags) + skeleton step definitions in `tests/features/product-browsing/steps/`
+1. **needs-features** creates `docs/features/product-browsing/product-catalog.feature` and `product-search.feature` (prefix: PROD, 8 scenarios with @PROD-001 through @PROD-008 tags) + skeleton step definitions in `docs/features/product-browsing/steps/`
 2. **needs-design** creates `docs/features/product-browsing/design.adoc` v1.0.0
    - During Phase 0, identifies technology decisions: framework choice, database choice
    - Invokes **needs-adr** to create ADR-0001 (TypeScript) and ADR-0002 (PostgreSQL)

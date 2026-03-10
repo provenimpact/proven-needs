@@ -32,7 +32,7 @@ Read `docs/constraints.adoc`. Identify any constraints relevant to feature quali
 
 Scan the project for:
 - **Cucumber runner:** `@cucumber/cucumber`, `cucumber-js`, or equivalent in the project's language
-- **Step definitions:** existing step files in `tests/features/<slug>/steps/` or project-wide step directories
+- **Step definitions:** existing step files in `docs/features/<slug>/steps/` or project-wide step directories
 - **Support files:** world definitions, hooks, custom parameter types
 - **Naming conventions:** how existing step files are named and organized
 
@@ -141,7 +141,7 @@ Feature: <Descriptive Name>
   Scenario Outline: <Parameterized behavior>
     Given <precondition>
     When <action with "<parameter>">
-    Then <expected outcome>
+    Then <expected> outcome is observed
 
     Examples:
       | parameter | expected |
@@ -162,6 +162,8 @@ Feature: <Descriptive Name>
 5. **Data tables:** Use Gherkin data tables for structured test data. Prefer tables over multiple `Given` steps when setting up multiple entities.
 
 6. **Scenario Outlines:** Use `Scenario Outline:` with `Examples:` tables when the same behavior needs testing with multiple inputs. Each row in the Examples table generates a separate test run.
+
+7. **Rule keyword (optional):** Gherkin supports the `Rule:` keyword (since Gherkin v6) for grouping scenarios under a business rule within a feature file. Use `Rule:` when a feature file has many scenarios that cluster around distinct business rules. Each `Rule:` can have its own `Background:`. This is optional -- flat scenario lists are fine for most features.
 
 #### 4. Writing effective scenarios
 
@@ -224,10 +226,10 @@ Tag error/edge scenarios with the same spec ID as the happy path they relate to.
 
 After creating `.feature` files, generate skeleton step definitions so the scenarios can be wired up during implementation.
 
-Step definition files go in `tests/features/<slug>/steps/`:
+Step definition files go in `docs/features/<slug>/steps/`:
 
-```typescript
-// tests/features/<slug>/steps/<name>.steps.ts
+```javascript
+// docs/features/<slug>/steps/<name>.steps.js
 import { Given, When, Then } from "@cucumber/cucumber";
 
 Given("the following products exist:", async function (dataTable) {
@@ -238,16 +240,28 @@ When("I visit the product catalog", async function () {
   // TODO: implement during needs-implementation
 });
 
-Then("I should see {int} products", async function (count: number) {
+Then("I should see {int} products", async function (count) {
   // TODO: implement during needs-implementation
 });
 ```
+
+> **Language note:** Step definitions must be in the same language as the project. The example above uses JavaScript with `@cucumber/cucumber` (cucumber-js). For TypeScript projects, use `.steps.ts` files with type annotations. For Java projects, use `cucumber-jvm`. For Ruby, use `cucumber-ruby`. The `.feature` files themselves are language-agnostic and work with any Cucumber implementation.
+
+> **Configuration note:** Since feature files live in `docs/features/` (not the cucumber-js default of `features/`), the project needs a `cucumber.js` configuration file:
+> ```javascript
+> // cucumber.js
+> export default {
+>   paths: ['docs/features/**/*.feature'],
+>   import: ['docs/features/**/steps/*.js'],
+> }
+> ```
 
 **Step definition rules:**
 - Use `TODO` markers for unimplemented steps -- implementation happens during `needs-implementation`
 - Follow the project's existing step definition conventions if any exist
 - Reuse existing step definitions where possible (Cucumber matches by regex/expression)
 - Step definitions are NOT expected to pass before implementation
+- Use regular `function()` expressions (not arrow functions) to access the Cucumber World via `this`
 
 ### Adding scenarios to an existing feature
 
@@ -331,4 +345,4 @@ Before finalizing, verify every item:
 
 ## Reference
 
-See `references/example.feature` for a complete example showing how a feature intent becomes Gherkin feature files.
+See `references/example.adoc` for a complete example showing how a feature intent becomes Gherkin feature files.
